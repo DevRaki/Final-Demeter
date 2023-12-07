@@ -9,9 +9,9 @@ import PeopleIcon from '@mui/icons-material/People';
 import StoreIcon from '@mui/icons-material/Store';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-
+import { useUser } from '../Context/User.context';
 const Navbar = () => {
-
+    const {isAuthenticated} = useUser();
     const [submenuComprasVisible, setSubmenuComprasVisible] = useState(false);
     const [submenuVentasVisible, setSubmenuVentasVisible] = useState(false);
 
@@ -28,7 +28,9 @@ const Navbar = () => {
 
         setTimeout(() => setSubmenuVentasVisible(false), 5000);
     }
-
+    if(!isAuthenticated){
+        return ''
+    }
     return (
         <nav className="pc-sidebar">
             <div className="navbar-wrapper">

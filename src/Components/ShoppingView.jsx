@@ -64,6 +64,7 @@ function ShoppingView({ id }) {
                   <h5>Detalle de compras</h5>
                 </div>
                 <div className="card-body">
+                  <p>Regina Lopez</p>
                   <table className="table table-hover">
                     <thead>
                       <tr>

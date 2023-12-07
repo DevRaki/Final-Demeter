@@ -34,9 +34,16 @@ export default function CreateSupplier({
     setError,
     reset,
     setValue,
-    formState: { errors, isValid }
+    trigger,
+    formState: { errors }
   } = useForm();
   const { createSupplier, supplier } = useSupplier();
+
+  const handleInputChange = async (field, value) => {
+    setValue(field, value); // Actualiza el valor en el formulario
+    await trigger(field); // Activa la validación para el campo específico
+  };
+
 
   const [open, setOpen] = React.useState(false);
   const [supplyToEdit, setSupplyToEdit] = useState(null);
@@ -94,6 +101,10 @@ export default function CreateSupplier({
     createSupplier(values);
     reset();
     setOpen(false);
+
+    // setTimeout(() => {
+    //   window.location.reload(); // Recargar la página después de 1 segundo (1000 milisegundos)
+    // }, 500);
   });
 
   const handleOpen = () => {
@@ -150,7 +161,6 @@ export default function CreateSupplier({
                 })();
             </script> */}
                   <form
-                    className="was-validated"
                     onSubmit={(event) =>
                       typeof onDefaultSubmit === "function"
                         ? onDefaultSubmit(event, setOpen)
@@ -212,7 +222,10 @@ export default function CreateSupplier({
                           })}
                           type="text"
                           className="form-control"
+                          onChange={(e) => handleInputChange("Document", e.target.value)}
+
                           required
+
                         />
                         {errors.Document && (
                           <p className="text-red-500">
@@ -233,12 +246,14 @@ export default function CreateSupplier({
                             pattern: {
                               value:/^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
                               message:
-                                "La primera letra debe ser mayúscula y solo letras."
+                                "La primera letra debe ser mayúscula"
                             }
                           })}
                           type="text"
                           className="form-control"
                           required
+                          onChange={(e) => handleInputChange("Name_Supplier", e.target.value)}
+
                         />
                         {errors.Name_Supplier && (
                           <p className="text-red-500">
@@ -262,7 +277,7 @@ export default function CreateSupplier({
                           })}
                           type="text"
                           className="form-control"
-                          required
+                          onChange={(e) => handleInputChange("Name_Business", e.target.value)}
                         />
                         {errors.Name_Business && (
                           <p className="text-red-500">
@@ -284,6 +299,9 @@ export default function CreateSupplier({
                           type="number"
                           className="form-control"
                           required
+                          onChange={(e) => handleInputChange("Phone", e.target.value)}
+
+
                         />
                         {errors.Phone && (
                           <p className="text-red-500">{errors.Phone.message}</p>
@@ -306,6 +324,9 @@ export default function CreateSupplier({
                           type="email"
                           className="form-control"
                           required
+                          onChange={(e) => handleInputChange("Email", e.target.value)}
+
+
                         />
                         {errors.Email && (
                           <p className="text-red-500">{errors.Email.message}</p>
@@ -330,7 +351,13 @@ export default function CreateSupplier({
                           type="text"
                           className="form-control"
                           required
+                          onChange={(e) => handleInputChange("City", e.target.value)}
+
                         />
+                    {errors.City && (
+                          <p className="text-red-500">{errors.City.message}</p>
+                        )}
+
                       </div>
                     </div>
                     <div className="buttonconfirm">
@@ -338,7 +365,6 @@ export default function CreateSupplier({
                         <button
                           className="btn btn-primary mr-5"
                           type="submit"
-                          disabled={!isValid}
                         >
                           Confirmar
                         </button>

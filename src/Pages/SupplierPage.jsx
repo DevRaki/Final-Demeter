@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import { BiEdit } from "react-icons/bi";
 import { AiOutlineEye, AiFillDelete } from "react-icons/ai";
 import { MdToggleOn, MdToggleOff } from "react-icons/md";
@@ -11,21 +11,29 @@ import "../fonts/fontawesome.css";
 import "../fonts//material.css";
 import CreateSupplier from "../Components/CreateSupplier.jsx";
 import DeleteSupplier from "../Components/DeleteSupplier.jsx";
+import LinkedSupplier from "../Components/LinkedSupplier.jsx";
 
 function SupplierPage() {
-  const { supplier, getSupplierByState, updateSupplier, getSupplie , toggleSupplyStatus } = useSupplier();
-
+  const { supplier, getSupplierByState, updateSupplier, getSupplie, toggleSupplyStatus } = useSupplier();
   const [searchTerm, setSearchTerm] = useState("");
+  const [showEnabledOnly, setShowEnabledOnly] = useState(false); // Estado para controlar la visibilidad
+
 
   useEffect(() => {
     getSupplierByState();
   }, []);
 
+  //funcion para inhabilitar proveedor
+  const status = supplier.State ? "" : "desactivado";
+
+  //función para mostrar solo los habilitdos
+  const handleCheckboxChange = (event) => {
+    setShowEnabledOnly(event.target.checked);
+  };
+
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
-
-  const status = supplier.State ? "" : "desactivado";
 
   const filteredSuppliers = supplier.filter((supplierItem) => {
     const {
@@ -38,14 +46,32 @@ function SupplierPage() {
       Email,
       State
     } = supplierItem;
-    const searchString =
-      `${Type_Document} ${Document} ${Name_Supplier} ${Name_Business} ${Phone} ${City} ${Email} ${State}`.toLowerCase();
-    return searchString.includes(searchTerm.toLowerCase());
+
+
+    if (showEnabledOnly) {
+      return (
+        supplierItem.State && // Verificar si el proveedor está habilitado
+        `${Type_Document} ${Document} ${Name_Supplier} ${Name_Business} ${City}  ${Phone}  ${Email}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Si showEnabledOnly no está marcado, mostrar todos los proveedores que coincidan con la búsqueda
+    return (
+      `${Type_Document} ${Document} ${Name_Supplier} ${Name_Business} ${City}  ${Phone}  ${Email}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
   });
+  //   const searchString =
+  //     `${Type_Document} ${Document} ${Name_Supplier} ${Name_Business} ${Phone} ${City} ${Email} ${State}`.toLowerCase();
+  //   return searchString.includes(searchTerm.toLowerCase());
+  // });
 
   const onUpdate = (event, id, modalView) => {
     event.preventDefault();
-    
+
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData);
 
@@ -73,7 +99,7 @@ function SupplierPage() {
                 </div>
                 <div className="card-body">
                   <div className="row">
-                    <div className="col-md-6">
+                    <div className="col-md-6" title="Presiona para registrar un proveedor">
                       <CreateSupplier />
                     </div>
                     <div className="col-md-6">
@@ -86,9 +112,24 @@ function SupplierPage() {
                           placeholder="Buscador"
                           value={searchTerm}
                           onChange={handleSearchChange}
+                          title="Presiona para buscar el proveedor"
                         />
                       </div>
                     </div>
+                  </div>
+
+                  <div className="form-check ml-4 mt-1" >
+                    <input
+                      type="checkbox"
+                      title='Presiona para mostrar solo las compras habilitadas'
+                      className="form-check-input"
+                      id="showEnabledOnly"
+                      checked={showEnabledOnly}
+                      onChange={handleCheckboxChange}
+                    />
+                    <label className="form-check-label" htmlFor="showEnabledOnly">
+                      Mostrar solo habilitados
+                    </label>
                   </div>
 
                   <div className="card-body table-border-style">
@@ -119,7 +160,7 @@ function SupplierPage() {
                               <td>{supplierItem.Email}</td>
                               <td className={`${status}`}>
                                 {supplierItem.State ? "Habilitado" : "Deshabilitado"}
-                                </td>
+                              </td>
                               <td className="flex items-center">
                                 <CreateSupplier
                                   isDisabled={!supplierItem.State}
@@ -139,30 +180,34 @@ function SupplierPage() {
                                   }
                                   buttonProps={{
                                     buttonText: (
-                                      <i data-feather="thumbs-up">
+                                      <i data-feather="thumbs-up" title="Presiona para editar el proveedor">
                                         <BiEdit />
                                       </i>
                                     ),
-                                    buttonClass: "btn btn-icon btn-primary mr-1"
+                                    buttonClass: "btn btn-icon btn-primary mr-1",
                                   }}
                                 />
-                                <DeleteSupplier
-                                  currentSupplier={supplierItem}
-                                  isDisabled={!supplierItem.State}
-                                  
-                                />
+                                <div title="Presiona para eliminar el proveedor">
+                                  <DeleteSupplier
+                                    currentSupplier={supplierItem}
+                                    isDisabled={!supplierItem.State}
+                                  />
+
+                                </div>
+
                                 <button
-                                   type="button"
-                                   className={`btn  btn-icon btn-success ml-1 ${status}`}
-                                   onClick={() => toggleSupplyStatus(supplierItem.ID_Supplier)}
-                                  
+                                  type="button"
+                                  title='Presiona para inhabilitar o habilitar el proveedor'
+                                  className={`btn  btn-icon btn-success ml-1 ${status}`}
+                                  onClick={() => toggleSupplyStatus(supplierItem.ID_Supplier)}
+
                                 >
-                                   {supplierItem.State ? (
-                                     <MdToggleOn className={`estado-icon active${status}`} />
-                                   ) : (
-                                     <MdToggleOff className={`estado-icon inactive${status}`} />
- 
-                                   )}
+                                  {supplierItem.State ? (
+                                    <MdToggleOn className={`estado-icon active${status}`} />
+                                  ) : (
+                                    <MdToggleOff className={`estado-icon inactive${status}`} />
+
+                                  )}
                                 </button>
                               </td>
                             </tr>

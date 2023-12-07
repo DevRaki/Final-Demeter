@@ -15,15 +15,15 @@ export const useSupplies = () => {
 export function Supplies({ children }) {
     const [supplies, setSupplies] = useState([]);
 
-    
-        const getSupplies = async () => {
-            try {
-                const res = await getSuppliesRequest();
-                setSupplies(res?.data || []);
-            } catch (error) {
-                console.error(error);
-            }
+
+    const getSupplies = async () => {
+        try {
+            const res = await getSuppliesRequest();
+            setSupplies(res?.data || []);
+        } catch (error) {
+            console.error(error);
         }
+    }
 
     const getShopSupplies = async () => {
         try {
@@ -49,10 +49,12 @@ export function Supplies({ children }) {
     const createSupplies = async (supplie) => {
         try {
             const res = await createSuppliesRequest(supplie);
-            getSupplies(res);
+            return res.data
         } catch (error) {
             console.error(error);
         }
+
+        return {}
     }
 
     const toggleSupplyStatus = async (id) => {
@@ -98,7 +100,7 @@ export function Supplies({ children }) {
             createSupplies,
             toggleSupplyStatus,
             updateSupplies,
-            deleteSupplies, 
+            deleteSupplies,
             getShopSupplies
         }}>
             {children}

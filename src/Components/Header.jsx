@@ -7,12 +7,13 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-
+import { useUser } from '../Context/User.context';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
 	const [showDropdown, setShowDropdown] = useState(false);
-	// const dropdownRef = useRef();
+	const { isAuthenticated, logout } = useUser()
+    const dropdownRef = useRef();
 	const navigate = useNavigate();
 
 	const toggleDropdown = () => {
@@ -21,23 +22,25 @@ const Header = () => {
 		setTimeout(() => setShowDropdown(false), 3000);
 	};
 
-	// useEffect(() => {
-	// 	const handleClickOutside = (event) => {
-	// 		if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-	// 			setShowDropdown(false);
-	// 		}
-	// 	};
+	
 
-	// 	if (showDropdown) {
-	// 		document.addEventListener('mousedown', handleClickOutside);
-	// 	} else {
-	// 		document.removeEventListener('mousedown', handleClickOutside);
-	// 	}
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+				setShowDropdown(false);
+			}
+		};
 
-	// 	return () => {
-	// 		document.removeEventListener('mousedown', handleClickOutside);
-	// 	};
-	// }, [showDropdown]);
+		if (showDropdown) {
+			document.addEventListener('mousedown', handleClickOutside);
+		} else {
+			document.removeEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [showDropdown]);
 
 	return (
 		<header className="pc-header">
@@ -129,7 +132,7 @@ const Header = () => {
 								<li className="dropdown-item">
 									<button
 										onClick={() => {
-											navigate('/');
+											logout();
 										}}
 										title='Cerrar la sesion del usuario logueado en el sistema.'
 									>

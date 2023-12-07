@@ -41,16 +41,17 @@ const customStyles = {
 
 function CreateSupplies({
   onDefaultSubmit = null,
+  setCreatedSupplie,
   buttonProps = {
     buttonClass: 'btn btn-primary',
-    buttonText: 'Registrar',
-  },
+    buttonText: 'Crear insumo',
+  }
 }) {
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
   } = useForm();
 
@@ -67,6 +68,11 @@ function CreateSupplies({
 
   const handleCategoryChange = (selectedOption) => {
     setSelectedCategory(selectedOption);
+  };
+
+  const handleInputChange = async (field, value) => {
+    setValue(field, value); // Actualiza el valor en el formulario
+    await trigger(field); // Activa la validación para el campo específico
   };
 
   const onSubmit = handleSubmit(async (values) => {
@@ -146,7 +152,8 @@ function CreateSupplies({
       return;
     }
 
-    createSupplies(dataToSend);
+    const data = await createSupplies(dataToSend);
+    setCreatedSupplie(data)
     setOpen(false);
     reset();
     setSelectedMeasure(null);
@@ -160,11 +167,11 @@ function CreateSupplies({
   };
 
   const options = Category_supplies
-  .filter(category => category.State)
-  .map(category => ({
-    value: category.ID_SuppliesCategory,
-    label: category.Name_SuppliesCategory,
-  }));
+    .filter(category => category.State)
+    .map(category => ({
+      value: category.ID_SuppliesCategory,
+      label: category.Name_SuppliesCategory,
+    }));
 
   return (
     <React.Fragment>
@@ -210,11 +217,16 @@ function CreateSupplies({
                           pattern: {
                             value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
                             message:
-                              'El nombre del insumo debe tener la primera letra en mayúscula, el resto en minúscula y solo se permiten letras.',
+                              'La primera letra en mayúscula y solo letras.',
                           },
                         })}
                         type="text"
                         className="form-control"
+
+                        onChange={(e) => handleInputChange("Name_Supplies", e.target.value)}
+
+
+
                       />
                       {errors.Name_Supplies && (
                         <p className="text-red-500">
@@ -343,7 +355,6 @@ function CreateSupplies({
                       <button
                         className="btn btn-primary mr-5"
                         type="submit"
-                        disabled={!isValid || !selectedMeasure || !selectedCategory}
                       >
                         Confirmar
                       </button>
