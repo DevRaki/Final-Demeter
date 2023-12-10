@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getUsersRequest, getUserRequest, createUserRequest, statusUserRequest, updateUserRequest, deleteUserRequest, loginRequest, verifyTokenRequest, forgotPasswordRequest, NewPasswordRequest, GetUserCookies } from '../Api/User.request.js'
+import { getUsersRequest, getUserRequest, createUserRequest, statusUserRequest, updateUserRequest, deleteUserRequest, loginRequest, verifyTokenRequest, forgotPasswordRequest, NewPasswordRequest, GetUserCookies, GetCurrentUser } from '../Api/User.request.js'
 import { getWaitersRequest, createWaiterRequest } from '../Api/User.request.js';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
@@ -26,8 +26,6 @@ export const User = ({ children }) => {
   const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
 
   const navigate = useNavigate();
-
-
 
   const getUsers = async () => {
     try {
@@ -62,6 +60,17 @@ export const User = ({ children }) => {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  const getCurrentUser = async (user) => {
+    try {
+      const res = await GetCurrentUser(user);
+      return res.data
+    } catch (error) {
+      console.log(error);
+    }
+
+    return {}
   }
 
   const toggleUserStatus = async (id) => {
@@ -310,7 +319,8 @@ const createWaiter = async (user) => {
         setChangePasswordError,
         changePasswordSuccess,
         setChangePasswordSuccess,
-        getUserCookies
+        getUserCookies, 
+        getCurrentUser
       }}
     >
       {children}

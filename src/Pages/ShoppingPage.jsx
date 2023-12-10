@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useShoppingContext } from '../Context/Shopping.context';
 import { useSupplier } from "../Context/Supplier.context";
+import { useUser } from '../Context/User.context';
 import { MdToggleOn, MdToggleOff } from "react-icons/md";
 import ShoppingView from '../Components/ShoppingView';
 import pdfMake from 'pdfmake/build/pdfmake';
@@ -15,9 +16,18 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs;
 function ShoppingPage() {
   const { getOneShopping, shopping: Shopping, selectAction, disableShopping, getShopingByProvider } = useShoppingContext();
   const [searchTerm, setSearchTerm] = useState("");
+  const { getCurrentUser } = useUser();
+  const [currentUser, setCurrentUser] = useState({})
   const [shoppingData, setShoppingData] = useState([])
   const [showEnabledOnly, setShowEnabledOnly] = useState(false); // Estado para controlar la visibilidad
 
+
+  useLayoutEffect(() => {
+		return async () => {
+		  const user = await getCurrentUser()
+		  setCurrentUser(user)
+		};
+	  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +57,6 @@ function ShoppingPage() {
   const filteredShopping = shoppingData.filter((shoppingItem) => {
     const {
       ID_Shopping,
-      Datetime,
       Total,
       State,
       Supplier: { Name_Supplier },
@@ -61,8 +70,8 @@ function ShoppingPage() {
       return (
         shoppingItem.State && // Verificar si el proveedor está habilitado
         (itemDate === searchDate.toLowerCase() || // Comparar fechas
-          `${ID_Shopping} ${itemDate} ${Total} ${State} ${Name_Supplier}`
-            .toLowerCase()
+        `${ID_Shopping} ${itemDate} ${Total} ${State} ${Name_Supplier} `
+        .toLowerCase()
             .includes(searchTerm.toLowerCase())) // Comparar términos de búsqueda
       );
     }
@@ -82,51 +91,58 @@ const generatePDF = () => {
       ID_Shopping,
       Datetime,
       Total,
+      Invoice_Number,
       Supplier: { Name_Supplier },
     } = shoppingItem;
 
     return [
       { text: ID_Shopping, bold: true, alignment: 'center'  },
+      { text: `${currentUser.Name_User} ${currentUser.LastName_User}`, alignment: 'center' }, // Agregar información del usuario
+      { text: Invoice_Number  },
       { text: Name_Supplier, alignment: 'center' },
       { text: new Date(Datetime).toLocaleDateString() , alignment: 'center' },
       { text: Total, alignment: 'center'  },
+
 
     ];
   });
 
   const documentDefinition = {
     content: [
-      { text: 'Reporte de compras', fontSize: 16, margin: [0, 0, 0, 10] },
+      { text: 'Reporte de compras', fontSize: 16, margin: [0, 10, 0, 10] }, // Margen superior ajustado
       {
         table: {
           headerRows: 1,
-          widths: ['auto', '*', '*', 'auto'],
+          widths: ['auto', 'auto', 'auto', '*', 'auto', '*'], // Ajuste de anchos de columnas
           body: [
             [
               'ID',
+              'Usuario',
+              'N. factura',
               'Proveedor',
               'Fecha',
-              'Total'
+              'Total',
             ],
             ...tableBody,
           ],
         },
         layout: {
-          fontSize: 12, 
-          margin: [0, 5, 0, 15], 
-          fillColor: (rowIndex, node, columnIndex) => {
-            return rowIndex % 2 === 0 ? '#CCCCCC' : null; 
-          },
+          defaultBorder: false, 
+          fontSize: 12,
+          fillColor: (rowIndex) => (rowIndex % 2 === 0 ? '#CCCCCC' : null),
+          paddingTop: () => 5, 
+          paddingBottom: () => 5, 
         },
       },
     ],
     styles: {
       table: {
-        width: '100%', 
+        width: '100%',
+        margin: [0, 10, 0, 15], 
       },
     },
   };
-
+  
   pdfMake.createPdf(documentDefinition).download('shopping_report.pdf');
 };
 
@@ -197,9 +213,9 @@ const generatePDF = () => {
                         <thead>
                           <tr>
                             <th>Fecha</th>
+                            <th>Usuario</th>
                             <th>N Factura</th>
                             <th>Proveedor</th>
-                            <th>Usuario</th>
                             <th>Total</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -209,6 +225,7 @@ const generatePDF = () => {
                           {filteredShopping.map((
                             {
                               ID_Shopping,
+                              Invoice_Number,
                               Datetime,
                               Total,
                               State,
@@ -220,9 +237,9 @@ const generatePDF = () => {
                           ) => (
                             <tr key={ID_Shopping}>
                               <td>{new Date(Datetime).toLocaleDateString()}</td>
-                              <td>{ID_Shopping}</td>
+                              <td>{`${currentUser.Name_User} ${currentUser.LastName_User}`}</td>
+                              <td>{Invoice_Number}</td>
                               <td>{Name_Supplier}</td>
-                              <td>Samuel rios</td>
                               <td>{Total}</td>
                               <td className={`${status}`}>
                                 {State ? "Habilitado" : "Deshabilitado"}

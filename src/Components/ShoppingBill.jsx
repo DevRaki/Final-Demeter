@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form';
 import '../css/style.css'
 import ConfirmShop from './confirmShop';
@@ -6,51 +6,34 @@ import CancelShop from './CancelShop';
 import { useSupplier } from '../Context/Supplier.context';
 import { useUser } from '../Context/User.context';
 import Select from 'react-select';
+import { v4 } from "uuid"
+import useLocaStorage from '../hooks/useLocaStorage';
 
 
-function ShoppingBill({ total = 0, ...confirmValues }) {
+function ShoppingBill({ total = 0, onConfirm, ...confirmValues }) {
   const { register, handleSubmit } = useForm();
-  // const {isAuthenticated, getUser} = useUser()
-  // const [currentUser, setCurrentUser] = useState({ Name_User: '' });
-  
-
-  // useEffect(() => {
-  //   async function fetchUser() {
-  //     try {
-  //       if (isAuthenticated) {
-  //         const user = await getUser();
-  //         console.log('Usuario obtenido:', user);
-  //         setCurrentUser(user);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error al obtener el usuario:', error);
-  //     }
-  //   }
-  //   fetchUser();
-  // }, [isAuthenticated, getUser]);
-
+  const [currentUser, setCurrentUser] = useState({})
 
 
   const { getSupplier } = useSupplier()
+  const { getCurrentUser } = useUser()
 
-
-
-
+  const uuidv4 = useMemo(() => v4(), [])
   const [supplierState, setSupplierState] = useState([{
     Name_Supplier: "",
     ID_Supplier: "",
     Name_Business: "",
   }])
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedSupplier, setSelectedSupplier] = useState(null);
-  
-    useEffect(() => {
-      return async () => {
-        const newSupplier = await Promise.resolve(getSupplier())
-        setSupplierState(newSupplier)
-      }
-      // console.log(getSupplies())
-    }, [])
+  const [selectedSupplier, setSelectedSupplier, destroy] = useLocaStorage("supplier", {});
+
+  useEffect(() => {
+    return async () => {
+      const newSupplier = await Promise.resolve(getSupplier())
+      setSupplierState(newSupplier)
+    }
+    // console.log(getSupplies())
+  }, [])
 
   const customStyles = {
     control: (provided, state) => ({
@@ -60,21 +43,29 @@ function ShoppingBill({ total = 0, ...confirmValues }) {
       fontSize: '14px',
       borderColor: state.isFocused ? '#FFA500' : 'black',
       boxShadow: state.isFocused ? '0 0 0 1px #FFA500' : 'none',
-     "&:focus-within": {
-      borderColor: '#FFA500',
+      "&:focus-within": {
+        borderColor: '#FFA500',
       }
     }),
   };
+
+  const beforeConfirm = (data) => {
+    onConfirm(data)
+    destroy()
+  }
 
   //para enviar los datos con useform
   const onSubmit = handleSubmit(data => {
     console.log(data)
   })
   //se utilizará para actualizar la fecha cada segundo o en intervalos regulares, llamando ka función tick  
-  useEffect(() => {
+  useLayoutEffect(() => {
     const timerID = setInterval(() => tick(), 1000);
-    return () => {
+    return async () => {
       clearInterval(timerID);
+      const user = await getCurrentUser()
+
+      setCurrentUser(user)
     };
   }, []);
 
@@ -101,14 +92,14 @@ function ShoppingBill({ total = 0, ...confirmValues }) {
     <div className="facture flex justify-between gap-20 w-full h-full ">
       <form className="w-full max-w-xs p-6" onSubmit={onSubmit}>
         <div className="text-center">
-        <h2>Factura</h2>
+          <h2>Factura</h2>
           <h5 className='mt-3'>{currentDate.toLocaleDateString()}</h5>
-          <h5>Usuario: </h5>
+          <h5>Usuario: {`${currentUser.Name_User} ${currentUser.LastName_User}`}</h5>
           <hr className="ml-2" />
         </div>
         <div className="flex mb-2 mr-2">
-        <h5 className=' mt-2'>N. factura:</h5>
-        <input className=" custom-input-facture   " type="number" {...register("Price_Supplier")} />
+          <h5 className=' mt-2'>N. factura:</h5>
+          <input className='custom-input-facture' type="text" value={uuidv4.length > 20 ? uuidv4.slice(0, 20) + "..." : uuidv4} />
 
         </div>
         <div className="flex mt-3 mr-2">
@@ -133,7 +124,10 @@ function ShoppingBill({ total = 0, ...confirmValues }) {
         <div className="mt-auto ">
           <hr className="ml-2 mt-4 " />
           <div className="flex justify-between pt-3">
-            <ConfirmShop {...confirmValues} data={selectedSupplier} />
+            <ConfirmShop {...Object.assign(confirmValues, {
+              uuidv4
+            })} data={selectedSupplier}
+              onConfirm={beforeConfirm} />
             <CancelShop />
           </div>
         </div>

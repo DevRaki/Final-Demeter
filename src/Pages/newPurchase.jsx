@@ -10,6 +10,7 @@ import Pagination from '@mui/material/Pagination';
 import Stack from '@mui/material/Stack';
 import Select from 'react-select';
 import CreateSupplies from '../Components/CreateSupplies';
+import useLocaStorage from '../hooks/useLocaStorage';
 
 
 
@@ -17,15 +18,13 @@ function NewPurchase() {
   const { register, handleSubmit, reset } = useForm();
   const { createMultipleShopping } = useShoppingContext()
   const [error, setError] = useState("")
-  const [selectedSupplies, setSelectedSupplies] = useState([])
+  const [selectedSupplies, setSelectedSupplies, destroy] = useLocaStorage("suppliesTable", [])
   const [shoppingBillState, setShoppingBillState] = useState({
     total: 0
   })
   const [refreshPage, setRefreshPage] = useState(false);
 
   const [availableSupplies, setAvailableSupplies] = useState([]);
-
-
 
   const [page, setPage] = useState(1);
   const itemsPerPage = 3;
@@ -59,22 +58,22 @@ function NewPurchase() {
   //   "value": 2,
   //   "label": "Jorge"
   // }
-  const onConfirm = async ({ value }) => {
+  const onConfirm = async ({ value, uuidv4 }) => {
     const data = selectedSupplies.map(({ ID_Supplies, ...data }) => ({
       shoppingDetails: {
         ...data,
         Supplies_ID: ID_Supplies
       },
       Total: shoppingBillState.total,
-      Datetime: new Date(),
       State: 1,
       Supplier_ID: value,
-      User_ID: 1
+      User_ID: 1,
+      Invoice_Number: uuidv4
     }))
-    await createMultipleShopping(data)
 
-    console.log("data3")
-    console.log(data)
+    await createMultipleShopping(data)
+    destroy()
+
   }
   const [suppliesState, setSuppliesState] = useState([{
     ID_Supplies: "",
@@ -99,6 +98,7 @@ function NewPurchase() {
       supplieName: Name_Supplies,
       ID_Supplies: supplierRef.current
     }
+
     if (Object.values(newData).some(v => !v)) {
       const message = "Llena todos los campos"
       setError(message)
@@ -118,7 +118,6 @@ function NewPurchase() {
       setSelectedSupplies(prev => [...prev, newData])
     }
 
-    console.log(selectedSupplies)
   };
 
   const { getShopSupplies } = useSupplies()
@@ -132,11 +131,10 @@ function NewPurchase() {
   useEffect(() => {
     // setSuppliesState(getSupplies())
     // console.log("Supplies")
+    updateTotalValue()
     return async () => {
       const newSupplies = await Promise.resolve(getShopSupplies())
       setSuppliesState(newSupplies)
-      console.log("newSupplies")
-      console.log(newSupplies)
     }
     // console.log(getSupplies())
   }, [])
@@ -174,12 +172,13 @@ function NewPurchase() {
       ...provided,
       fontSize: '14px',
       width: '200px',
-      marginLeft: '20px'
+      marginLeft: '20px',
     }),
   };
 
   const setCreatedSupplie = (data) => {
-    setAvailableSupplies(prev => [...prev, data])
+    // setAvailableSupplies(prev => [...prev, data])
+    window.location.reload()
   }
   return (
 
@@ -273,7 +272,7 @@ function NewPurchase() {
                 <tbody>
                   {
                     selectedSupplies.slice(startIndex, endIndex).map(({ Lot, Price_Supplier, supplieName, Measure, ID_Supplies }) => (
-                      <tr>
+                      <tr key={ID_Supplies}>
                         <td>{supplieName}</td>
                         <td>{Lot}</td>
                         <td>{Measure}</td>

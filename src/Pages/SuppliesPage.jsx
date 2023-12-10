@@ -114,7 +114,7 @@ function SuppliesPage() {
                                 <div style={{ display: "flex", alignItems: "center" }}>
                                   <UpdateSupplies
                                     buttonProps={{
-                                      buttonClass: `btn btn-icon btn-primary ${!supply.State ? "text-gray-400 cursor-not-allowed" : ""}`,
+                                      buttonClass: `btn btn-icon btn-primary mr-1 ${!supply.State ? "text-gray-400 cursor-not-allowed" : ""}`,
                                       isDisabled: !supply.State,
                                       buttonText: <BiEdit />,
                                     }}
@@ -130,7 +130,7 @@ function SuppliesPage() {
                                   </button>
                                   <button
                                     type="button"
-                                    className={`btn btn-icon btn-success ${supply.State ? "active" : "inactive"}`}
+                                    className={`btn btn-icon btn-success ml-1 ${supply.State ? "active" : "inactive"}`}
                                     onClick={() => toggleSupplyStatus(supply.ID_Supplies)}
                                   >
                                     {supply.State ? (

@@ -1,5 +1,5 @@
 import { createContext, useState, useContext } from 'react';
-import { CreateShopping, GetOneShopping, GetShopping, DisableShopping, UpdateShopping, GetShoppingDetail, GetShoppingDetails, CreateShoppingDetail, CreateManyDetails, CreateMultipleShopping, GetShopingAndShopingDetails, GetShopingByProvider, GetShoppingAndSuppliesBySupplierId } from '../Api/Shopping.request.js'
+import { CreateShopping, GetOneShopping, GetShopping, DisableShopping, UpdateShopping, GetShoppingDetail, GetShoppingDetails, CreateShoppingDetail, CreateManyDetails, CreateMultipleShopping, GetShopingAndShopingDetails, GetShopingByProvider, GetShoppingAndSuppliesBySupplierId, GetShoppingAndSuppliesBySupplierIdAndDateTime } from '../Api/Shopping.request.js'
 
 export const ShoppingContext = createContext();
 
@@ -94,6 +94,17 @@ export const ShoppingProvider = ({ children }) => {
   const getShoppingAndSuppliesBySupplierId = async (id) => {
     try {
       const res = await GetShoppingAndSuppliesBySupplierId(id);
+      return res.data
+    } catch (error) {
+      console.log(error);
+    }
+
+    return []
+  };
+
+  const getShoppingAndSuppliesBySupplierIdAndDateTime = async (id, date) => {
+    try {
+      const res = await GetShoppingAndSuppliesBySupplierIdAndDateTime(id, date);
       return res.data
     } catch (error) {
       console.log(error);
@@ -197,7 +208,8 @@ export const ShoppingProvider = ({ children }) => {
         createMultipleShopping,
         getShopingAndShopingDetails,
         getShopingByProvider,
-        getShoppingAndSuppliesBySupplierId
+        getShoppingAndSuppliesBySupplierId,
+        getShoppingAndSuppliesBySupplierIdAndDateTime
       }}
     >
       {children}

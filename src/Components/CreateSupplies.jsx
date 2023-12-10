@@ -71,7 +71,7 @@ function CreateSupplies({
   };
 
   const handleInputChange = async (field, value) => {
-    setValue(field, value); // Actualiza el valor en el formulario
+    //setValue(field, value); // Actualiza el valor en el formulario
     await trigger(field); // Activa la validación para el campo específico
   };
 
@@ -223,7 +223,7 @@ function CreateSupplies({
                         type="text"
                         className="form-control"
 
-                        onChange={(e) => handleInputChange("Name_Supplies", e.target.value)}
+                        // onChange={(e) => handleInputChange("Name_Supplies", e.target.value)}
 
 
 

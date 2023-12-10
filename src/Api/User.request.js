@@ -19,3 +19,4 @@ export const verifyTokenRequest = () => axios.get('/verifyToken')
 export const forgotPasswordRequest = (emailData) => axios.post(`/resetPassword`, emailData);
 
 export const NewPasswordRequest = (token) => axios.post(`/newPassword`, token)
+export const GetCurrentUser = () => axios.get(`/getCurrentUser`)

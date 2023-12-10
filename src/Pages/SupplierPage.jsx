@@ -23,6 +23,11 @@ function SupplierPage() {
     getSupplierByState();
   }, []);
 
+  const onSupplierChangeState = () => {
+    setTimeout(() => {
+      window.location.reload()
+    }, 500)
+  }
   //funcion para inhabilitar proveedor
   const status = supplier.State ? "" : "desactivado";
 
@@ -100,7 +105,7 @@ function SupplierPage() {
                 <div className="card-body">
                   <div className="row">
                     <div className="col-md-6" title="Presiona para registrar un proveedor">
-                      <CreateSupplier />
+                      <CreateSupplier whenSubmit={onSupplierChangeState}/>
                     </div>
                     <div className="col-md-6">
                       <div className="form-group">
@@ -186,6 +191,8 @@ function SupplierPage() {
                                     ),
                                     buttonClass: "btn btn-icon btn-primary mr-1",
                                   }}
+
+                                  whenSubmit={onSupplierChangeState}
                                 />
                                 <div title="Presiona para eliminar el proveedor">
                                   <DeleteSupplier

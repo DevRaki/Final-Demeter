@@ -26,7 +26,8 @@ export default function CreateSupplier({
     buttonText: "Registrar"
   },
   isDisabled = false,
-  onOpen = () => null
+  onOpen = () => null,
+  whenSubmit = () => null
 }) {
   const {
     register,
@@ -102,6 +103,7 @@ export default function CreateSupplier({
     reset();
     setOpen(false);
 
+    whenSubmit()
     // setTimeout(() => {
     //   window.location.reload(); // Recargar la página después de 1 segundo (1000 milisegundos)
     // }, 500);
@@ -114,6 +116,11 @@ export default function CreateSupplier({
   const handleClose = () => {
     setOpen(false);
   };
+
+  const defaultSubmit = (event) => {
+    onDefaultSubmit(event, setOpen)
+    whenSubmit()
+  }
 
   return (
     <React.Fragment>
@@ -163,7 +170,7 @@ export default function CreateSupplier({
                   <form
                     onSubmit={(event) =>
                       typeof onDefaultSubmit === "function"
-                        ? onDefaultSubmit(event, setOpen)
+                        ? defaultSubmit(event)
                         : onSubmit(event)
                     }
                   >
@@ -343,7 +350,7 @@ export default function CreateSupplier({
                           {...register("City", {
                             required: "La ciudad es requerida",
                             pattern: {
-                              value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
+                              value:/^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
                               message:
                                 "La primera letra debe ser mayúscula y solo letras."
                             }

@@ -64,7 +64,6 @@ function ShoppingView({ id }) {
                   <h5>Detalle de compras</h5>
                 </div>
                 <div className="card-body">
-                  <p>Regina Lopez</p>
                   <table className="table table-hover">
                     <thead>
                       <tr>
@@ -113,27 +112,3 @@ function ShoppingView({ id }) {
 
 export default ShoppingView
 
-const data = {
-  "ID_ShoppingDetail": 25,
-  "Lot": 2,
-  "Price_Supplier": "10000.00",
-  "Supplies_ID": 3,
-  "Shopping_ID": 26,
-  "Shopping": {
-    "ID_Shopping": 26,
-    "Datetime": "1970-01-01T00:00:00.000Z",
-    "Total": "50000.00",
-    "State": true,
-    "User_ID": 7,
-    "Supplier_ID": 1
-  },
-  "Supply": {
-    "ID_Supplies": 3,
-    "Name_Supplies": "Leche",
-    "Unit": 0,
-    "Measure": "kg",
-    "Stock": 10,
-    "State": true,
-    "SuppliesCategory_ID": null
-  }
-}

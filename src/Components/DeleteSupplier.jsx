@@ -5,6 +5,7 @@ import { useSupplier } from "../Context/Supplier.context";
 import { AiFillDelete } from "react-icons/ai";
 
 import "../css/style.css";
+import LinkedSupplier from "./LinkedSupplier";
 
 const style = {
   position: "absolute",
@@ -27,20 +28,27 @@ export default function DeleteSupplier({
   ...buttonParams
 }) {
   const [open, setOpen] = React.useState(false);
+  const [isLinkedSupplierOpen, setIsLinkedSupplierOpen] = useState(false)
   const { deleteSupplier } = useSupplier();
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (currentSupplier.ID_Supplier) {
-      console.log(currentSupplier);
-      deleteSupplier(currentSupplier.ID_Supplier);
+      const isDeleted = await deleteSupplier(currentSupplier.ID_Supplier);
+      
+      if (!isDeleted) {
+        setIsLinkedSupplierOpen(true)
+      }
       handleClose(false);
     }
   };
 
   return (
     <div>
+      {
+        isLinkedSupplierOpen && <LinkedSupplier isOpen={true} useButton={false} onClose={() => setIsLinkedSupplierOpen(false)}/>
+      }
       <button
         type="button"
         className="btn  btn-icon btn-danger"
