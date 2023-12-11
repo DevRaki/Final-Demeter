@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import { useSupplier } from "../Context/Supplier.context";
 import { AiFillDelete } from "react-icons/ai";
@@ -12,7 +14,7 @@ const style = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: 400,
-  height: 220,
+  height: 200,
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -22,9 +24,7 @@ const style = {
 export default function DeleteSupplier({
   currentSupplier = {
     ID_Supplier: null
-  },
-  isDisabled = false,
-  ...buttonParams
+  }
 }) {
   const [open, setOpen] = React.useState(false);
   const { deleteSupplier } = useSupplier();
@@ -45,10 +45,9 @@ export default function DeleteSupplier({
         type="button"
         className="btn  btn-icon btn-danger"
         onClick={() => handleOpen()}
-        disabled={isDisabled}
       >
         <i data-feather="camera">
-          <AiFillDelete />{" "}
+        <AiFillDelete />{" "}
         </i>
       </button>
       <Modal
@@ -60,16 +59,15 @@ export default function DeleteSupplier({
         <Box sx={style}>
           <div className="fixed inset-0 flex items-center justify-center">
 
-            <div className=" p-6 rounded shadow-md  ">
-              <h1 className="text-2xl font-semibold text-center pr-4 ">Confirmar eliminación</h1>
-              <p className="text-lg text-center mb-2 pr-4">
+            <div className=" p-6 rounded shadow-md text-end ">
+              <h1 className="text-3xl font-semibold ">Confirmar eliminación</h1>
+              <p className="deleteText">
                 ¿Estás seguro de que deseas eliminar este proveedor?
               </p>
-              <div className="mt-2 ml-1" >
+              <div >
                 <button
                   onClick={confirmDelete}
-                  className="bg-red-500 text-white font-bold py-2 px-4 rounded ml-5   "
-                  {...buttonParams}
+                  className="bg-red-500 text-white font-bold py-2 px-4 rounded ml-5 mt-5  "
                 >
                   Eliminar
                 </button>

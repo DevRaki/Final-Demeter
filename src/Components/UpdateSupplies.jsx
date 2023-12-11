@@ -58,7 +58,7 @@ function UpdateSupplies({
         register,
         handleSubmit,
         setValue,
-        formState: { errors, isValid },
+        formState: { errors },
     } = useForm();
 
     useEffect(() => {
@@ -96,7 +96,7 @@ function UpdateSupplies({
                 await updateSupplies(supplie.ID_Supplies, supplie);
                 setOpen(false);
             } catch (error) {
-                console.error('Error al actualizar el suministro', error);
+                console.error('Error al actualizar el insumo', error);
             }
         }
     });
@@ -106,11 +106,11 @@ function UpdateSupplies({
     };
 
     const options = Category_supplies
-  .filter(category => category.State)
-  .map(category => ({
-    value: category.ID_SuppliesCategory,
-    label: category.Name_SuppliesCategory,
-  }));
+        .filter(category => category.State)
+        .map(category => ({
+            value: category.ID_SuppliesCategory,
+            label: category.Name_SuppliesCategory,
+        }));
 
     return (
         <React.Fragment>
@@ -121,6 +121,7 @@ function UpdateSupplies({
                     setOpen(true);
                 }}
                 disabled={buttonProps.isDisabled}
+                title="Este botón sirve para editar el insumo"
             >
                 {buttonProps.buttonText}
             </button>
@@ -144,15 +145,15 @@ function UpdateSupplies({
                                     <div className="control">
                                         <div className="form-group col-md-6">
                                             <label htmlFor="Name_Supplies" className="form-label">
-                                                Nombre
+                                                Nombre:
                                             </label>
                                             <input
                                                 {...register('Name_Supplies', {
                                                     required: 'Este campo es obligatorio',
                                                     pattern: {
-                                                        value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
+                                                        value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/u,
                                                         message:
-                                                            'El nombre del insumo debe tener la primera letra en mayúscula, el resto en minúscula y solo se permiten letras.',
+                                                            'Debe tener la primera letra en mayúscula y el resto en minúscula.',
                                                     },
                                                 })}
                                                 type="text"
@@ -168,7 +169,7 @@ function UpdateSupplies({
 
                                         <div className="form-group col-md-6">
                                             <label htmlFor="Unit" className="form-label">
-                                                Cantidad
+                                                Cantidad:
                                             </label>
                                             <input
                                                 {...register('Unit', {
@@ -176,7 +177,7 @@ function UpdateSupplies({
                                                     validate: (value) => {
                                                         const parsedValue = parseInt(value);
                                                         if (isNaN(parsedValue)) {
-                                                            return 'La cantidad debe ser un número válido.';
+                                                            return 'Debe ser un número entero.';
                                                         }
                                                     },
                                                 })}
@@ -193,7 +194,7 @@ function UpdateSupplies({
                                     <div className="control">
                                         <div className="form-group col-md-6">
                                             <label htmlFor="Measure" className="form-label">
-                                                Medida
+                                                Medida:
                                             </label>
                                             <Select
                                                 options={[
@@ -223,7 +224,7 @@ function UpdateSupplies({
 
                                         <div className="form-group col-md-6">
                                             <label htmlFor="Stock" className="form-label">
-                                                Stock mínimo
+                                                Existencia mínima:
                                             </label>
                                             <input
                                                 {...register('Stock', {
@@ -233,15 +234,15 @@ function UpdateSupplies({
                                                         const parsedUnit = parseInt(Unit);
 
                                                         if (isNaN(parsedValue)) {
-                                                            return 'El stock mínimo debe be a number.';
+                                                            return 'Debe ser un número entero.';
                                                         }
 
                                                         if (parsedValue < 0 || parsedValue > 999) {
-                                                            return 'El stock mínimo debe ser un número entero entre 0 y 999.';
+                                                            return 'Debe ser un número entero entre 0 y 999.';
                                                         }
 
                                                         if (parsedValue > parsedUnit) {
-                                                            return `El stock mínimo no puede ser mayor que la cantidad de insumo (${parsedUnit}).`;
+                                                            return `No puede ser mayor que la cantidad: (${parsedUnit}).`;
                                                         }
                                                     },
                                                 })}
@@ -258,7 +259,7 @@ function UpdateSupplies({
                                     <div className="city">
                                         <div className="form-group col-md-6">
                                             <label htmlFor="SuppliesCategory_ID" className="form-label">
-                                                Categoría
+                                                Categoría:
                                             </label>
                                             <Select
                                                 options={options}
@@ -274,7 +275,7 @@ function UpdateSupplies({
                                                     colors: {
                                                         ...theme.colors,
                                                         primary: '#e36209',
-                                                    },  
+                                                    },
                                                 })}
                                             />
                                             {errors.SuppliesCategory_ID && (
@@ -291,7 +292,7 @@ function UpdateSupplies({
                                             <button
                                                 className="btn btn-primary mr-5"
                                                 type="submit"
-                                                disabled={!isValid || !selectedMeasure || !selectedCategory}
+                                                title="Este botón sirve para guardar la información y cerrar la ventana modal."
                                             >
                                                 Confirmar
                                             </button>
@@ -299,6 +300,7 @@ function UpdateSupplies({
                                                 className="btn btn-primary"
                                                 onClick={onCancel}
                                                 type="submit"
+                                                title="Este botón sirve para cerrar la ventana modal sin guardar la información."
                                             >
                                                 Cancelar
                                             </button>

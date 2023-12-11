@@ -6,4 +6,3 @@ export const createCategory_productsRequest = (category) => axios.post('/product
 export const disableCategory_productsRequest = (ID_ProductCategory) => axios.put(`/productcategory/disable/${ID_ProductCategory}`);
 export const updateCategory_productsRequest = (ID_ProductCategory, categoryProducts) => axios.put(`/productcategory/update/${ID_ProductCategory}`, categoryProducts)
 export const deleteCategory_productsRequest = (ID_ProductCategory) => axios.delete(`/productcategory/${ID_ProductCategory}`);
-export const getProductCategories = () => axios.get(`/productCategories`);

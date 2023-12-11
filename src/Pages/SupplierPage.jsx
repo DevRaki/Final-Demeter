@@ -13,12 +13,12 @@ import CreateSupplier from "../Components/CreateSupplier.jsx";
 import DeleteSupplier from "../Components/DeleteSupplier.jsx";
 
 function SupplierPage() {
-  const { supplier, getSupplierByState, updateSupplier, getSupplie , toggleSupplyStatus } = useSupplier();
+  const { supplier, getSupplier, deleteSupplier, updateSupplier, getSupplie , toggleSupplyStatus } = useSupplier();
 
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    getSupplierByState();
+    getSupplier().then(console.log(supplier));
   }, []);
 
   const handleSearchChange = (event) => {
@@ -45,7 +45,6 @@ function SupplierPage() {
 
   const onUpdate = (event, id, modalView) => {
     event.preventDefault();
-    
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData);
 
@@ -122,7 +121,7 @@ function SupplierPage() {
                                 </td>
                               <td className="flex items-center">
                                 <CreateSupplier
-                                  isDisabled={!supplierItem.State}
+                                  disabled={!supplierItem.State}
                                   key={supplierItem.ID_Supplier}
                                   onDefaultSubmit={(event, setOpen) =>
                                     onUpdate(
@@ -143,20 +142,18 @@ function SupplierPage() {
                                         <BiEdit />
                                       </i>
                                     ),
-                                    buttonClass: "btn btn-icon btn-primary mr-1"
+                                    buttonClass: "btn btn-icon btn-primary"
                                   }}
                                 />
                                 <DeleteSupplier
                                   currentSupplier={supplierItem}
-                                  isDisabled={!supplierItem.State}
-                                  
                                 />
                                 <button
                                    type="button"
-                                   className={`btn  btn-icon btn-success ml-1 ${status}`}
+                                   className={`btn  btn-icon btn-success ${status}`}
+                             
                                    onClick={() => toggleSupplyStatus(supplierItem.ID_Supplier)}
-                                  
-                                >
+                                 >
                                    {supplierItem.State ? (
                                      <MdToggleOn className={`estado-icon active${status}`} />
                                    ) : (

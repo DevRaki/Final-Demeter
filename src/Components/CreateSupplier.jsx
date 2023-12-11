@@ -25,7 +25,6 @@ export default function CreateSupplier({
     buttonClass: "btn btn-primary",
     buttonText: "Registrar"
   },
-  isDisabled = false,
   onOpen = () => null
 }) {
   const {
@@ -86,7 +85,7 @@ export default function CreateSupplier({
     if (isPhoneDuplicate) {
       setError("Phone", {
         type: "manual",
-        message: "El teléfono del proveedor ya existe."
+        message: "La teléfono del proveedor ya existe."
       });
       return;
     }
@@ -110,7 +109,6 @@ export default function CreateSupplier({
         type="button"
         className={buttonProps.buttonClass}
         onClick={handleOpen}
-        disabled={isDisabled}
       >
         {buttonProps.buttonText}
       </button>
@@ -179,7 +177,6 @@ export default function CreateSupplier({
                             <option value="CC">Cédula de ciudadanía</option>
                             <option value="CE">Cédula de extranjería</option>
                             <option value="PB">Pasaporte</option>
-                            <option value="NIT">Nit</option>
                           </select>
                           {errors.Type_Document && (
                             <p className="text-red-500">
@@ -212,7 +209,6 @@ export default function CreateSupplier({
                           })}
                           type="text"
                           className="form-control"
-                          required
                         />
                         {errors.Document && (
                           <p className="text-red-500">
@@ -231,14 +227,13 @@ export default function CreateSupplier({
                           {...register("Name_Supplier", {
                             required: "El nombre es obligatorio",
                             pattern: {
-                              value:/^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
+                              value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
                               message:
                                 "La primera letra debe ser mayúscula y solo letras."
                             }
                           })}
                           type="text"
                           className="form-control"
-                          required
                         />
                         {errors.Name_Supplier && (
                           <p className="text-red-500">
@@ -262,7 +257,6 @@ export default function CreateSupplier({
                           })}
                           type="text"
                           className="form-control"
-                          required
                         />
                         {errors.Name_Business && (
                           <p className="text-red-500">
@@ -305,7 +299,6 @@ export default function CreateSupplier({
                           })}
                           type="email"
                           className="form-control"
-                          required
                         />
                         {errors.Email && (
                           <p className="text-red-500">{errors.Email.message}</p>
@@ -329,7 +322,6 @@ export default function CreateSupplier({
                           })}
                           type="text"
                           className="form-control"
-                          required
                         />
                       </div>
                     </div>

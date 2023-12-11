@@ -24,7 +24,7 @@ function CreateUser({ onClose, onCreated }) {
     const { createUser, user } = useUser();
     const [selectedType, setSelectedType] = useState({ label: 'Seleccione tipo', value: '', isDisabled: true });
     const { role, getRoles } = useRole();
-    const [selectRole, setSelectRol] = useState(null);
+    const [selectRole, setSelectRol] = useState({ label: 'Seleccionar Rol', value: '', isDisable: true });
 
     const typeOptions = [
         { label: 'Seleccione tipo', value: '', isDisabled: true },
@@ -34,12 +34,12 @@ function CreateUser({ onClose, onCreated }) {
     ];
 
     useEffect(() => {
-        getRoles();
+        getRoles(); // Obtener roles cuando el componente se monta
+        console.log('Roles Usuarios: ', getRoles)
+        console.log('Role: ', role)
     }, []);
 
-    const handleRolChange = (selectedOption) => {
-        setSelectRol(selectedOption);
-    };
+    const rolOpcions = role.map(option => ({ label: option.Name_Role, value: option.ID_Role }));
 
     const customStyles = {
         control: (provided, state) => ({
@@ -62,7 +62,7 @@ function CreateUser({ onClose, onCreated }) {
     };
 
     const onSubmit = handleSubmit(async (values) => {
-        const isDocumentouplicate = user.some(users => users.Document === values.Document);
+        const isDocumentouplicate = user.some(waiters => waiters.Document === values.Document);
         const isEmailDuplicate = user.some(users => users.Email === values.Email);
 
         if (isDocumentouplicate) {
@@ -107,6 +107,7 @@ function CreateUser({ onClose, onCreated }) {
 
     const onCancel = () => {
         onClose();
+        console.log('Create user', role)
     };
 
     return (
@@ -292,13 +293,13 @@ function CreateUser({ onClose, onCreated }) {
                                             Rol: <strong>*</strong>
                                         </label>
                                         <Select
-                                            options={role.map((rol) => ({
-                                                value: rol.ID_Role,
-                                                label: rol.Name_Role,
-                                            }))}
+                                            options={[
+                                                { label: 'Seleccione rol', value: '', isDisabled: true },
+                                                ...rolOpcions
+                                            ]}
                                             {...register("Role_ID")}
-                                            value={selectRole}
-                                            onChange={handleRolChange}
+                                            value={rolOpcions}
+                                            onChange={(selectedOption) => setSelectRol(selectedOption)}
                                             menuPlacement="auto"
                                             menuShouldScrollIntoView={false}
                                             maxMenuHeight={132}

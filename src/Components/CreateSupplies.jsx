@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { useSupplies } from '../Context/Supplies.context';
 import { useCategorySupplies } from '../Context/CategorySupplies.context';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import Select from 'react-select';
 
 const style = {
@@ -47,29 +47,23 @@ function CreateSupplies({
   },
 }) {
   const {
+    control,
     register,
     handleSubmit,
     setError,
-    formState: { errors, isValid },
+    formState: { errors },
     reset,
   } = useForm();
 
   const { createSupplies, supplies } = useSupplies();
   const { Category_supplies } = useCategorySupplies();
-
   const [open, setOpen] = useState(false);
   const [selectedMeasure, setSelectedMeasure] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const handleMeasureChange = (selectedOption) => {
-    setSelectedMeasure(selectedOption);
-  };
-
-  const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption);
-  };
 
   const onSubmit = handleSubmit(async (values) => {
+
     if (!selectedMeasure) {
       setError('Measure', {
         type: 'manual',
@@ -85,6 +79,7 @@ function CreateSupplies({
       });
       return;
     }
+
     const dataToSend = {
       ...values,
       Measure: selectedMeasure.value,
@@ -125,7 +120,7 @@ function CreateSupplies({
     if (!dataToSend.Stock || isNaN(parseInt(dataToSend.Stock))) {
       setError('Stock', {
         type: 'manual',
-        message: 'El stock mínimo es requerido y debe ser un número válido.',
+        message: 'La existencia mínima es requerida y debe ser un número válido.',
       });
       return;
     }
@@ -133,7 +128,7 @@ function CreateSupplies({
     if (parseInt(dataToSend.Stock) < 0 || parseInt(dataToSend.Stock) > 999) {
       setError('Stock', {
         type: 'manual',
-        message: 'El stock mínimo debe ser un número entero entre 0 y 999.',
+        message: 'La existencia mínima debe ser un número entero entre 0 y 999.',
       });
       return;
     }
@@ -141,7 +136,7 @@ function CreateSupplies({
     if (parseInt(dataToSend.Stock) > parseInt(dataToSend.Unit)) {
       setError('Stock', {
         type: 'manual',
-        message: `El stock mínimo no puede ser mayor que la cantidad de insumo (${dataToSend.Unit}).`,
+        message: `La existencia mínima no puede ser mayor que la cantidad de insumo (${dataToSend.Unit}).`,
       });
       return;
     }
@@ -155,16 +150,17 @@ function CreateSupplies({
 
   const onCancel = () => {
     setOpen(false);
+    reset();
     setSelectedMeasure(null);
     setSelectedCategory(null);
   };
 
   const options = Category_supplies
-  .filter(category => category.State)
-  .map(category => ({
-    value: category.ID_SuppliesCategory,
-    label: category.Name_SuppliesCategory,
-  }));
+    .filter(category => category.State)
+    .map(category => ({
+      value: category.ID_SuppliesCategory,
+      label: category.Name_SuppliesCategory,
+    }));
 
   return (
     <React.Fragment>
@@ -175,6 +171,7 @@ function CreateSupplies({
           reset();
           setOpen(true);
         }}
+        title="Este botón sirve para crear un insumo"
       >
         {buttonProps.buttonText}
       </button>
@@ -202,15 +199,15 @@ function CreateSupplies({
                   <div className="control">
                     <div className="form-group col-md-6">
                       <label htmlFor="Name_Supplies" className="form-label">
-                        Nombre<strong>*</strong>
+                        Nombre: <strong>*</strong>
                       </label>
                       <input
                         {...register('Name_Supplies', {
                           required: 'Este campo es obligatorio',
                           pattern: {
-                            value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
+                            value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/u,
                             message:
-                              'El nombre del insumo debe tener la primera letra en mayúscula, el resto en minúscula y solo se permiten letras.',
+                              'La primera letra debe ser mayúscula y el resto minúscula.',
                           },
                         })}
                         type="text"
@@ -225,7 +222,7 @@ function CreateSupplies({
 
                     <div className="form-group col-md-6">
                       <label htmlFor="Unit" className="form-label">
-                        Cantidad<strong>*</strong>
+                        Cantidad: <strong>*</strong>
                       </label>
                       <input
                         {...register('Unit', {
@@ -233,7 +230,7 @@ function CreateSupplies({
                           validate: (value) => {
                             const parsedValue = parseInt(value);
                             if (isNaN(parsedValue)) {
-                              return 'La cantidad debe ser un número válido.';
+                              return 'Debe ser un número entero.';
                             }
                           },
                         })}
@@ -249,37 +246,46 @@ function CreateSupplies({
                   <div className="control">
                     <div className="form-group col-md-6">
                       <label htmlFor="Measure" className="form-label">
-                        Medida<strong>*</strong>
+                        Medida: <strong>*</strong>
                       </label>
-                      <Select
-                        options={[
-                          { value: 'Unidad(es)', label: 'Unidad(es)' },
-                          { value: 'Kilogramos (kg)', label: 'Kilogramos (kg)' },
-                          { value: 'Gramos (g)', label: 'Gramos (g)' },
-                          { value: 'Litros (L)', label: 'Litros (L)' },
-                          { value: 'Mililitros (ml)', label: 'Mililitros (ml)' },
-                        ]}
-                        value={selectedMeasure}
-                        onChange={handleMeasureChange}
-                        styles={customStyles}
-                        className="form-selects"
-                        theme={(theme) => ({
-                          ...theme,
-                          colors: {
-                            ...theme.colors,
-                            primary: '#e36209',
-                          },
-                        })}
+                      <Controller
+                        control={control}
+                        name="Measure"
+                        rules={{ required: 'Este campo es obligatorio' }}
+                        render={({ field }) => (
+                          <Select
+                            options={[
+                              { value: 'Kilogramos (kg)', label: 'Kilogramos (kg)' },
+                              { value: 'Gramos (g)', label: 'Gramos (g)' },
+                              { value: 'Litros (L)', label: 'Litros (L)' },
+                              { value: 'Mililitros (ml)', label: 'Mililitros (ml)' },
+                              { value: 'Unidad(es)', label: 'Unidad(es)' },
+                            ]}
+                            value={selectedMeasure}
+                            onChange={(selectedOption) => {
+                              setSelectedMeasure(selectedOption);
+                              field.onChange(selectedOption.value);
+                            }}
+                            styles={customStyles}
+                            className="form-selects"
+                            theme={(theme) => ({
+                              ...theme,
+                              colors: {
+                                ...theme.colors,
+                                primary: '#e36209',
+                              },
+                            })}
+                          />
+                        )}
                       />
                       {errors.Measure && (
                         <p className="text-red-500">{errors.Measure.message}</p>
                       )}
-                      <div className="invalid-feedback">Ingrese la medida</div>
                     </div>
 
                     <div className="form-group col-md-6">
                       <label htmlFor="Stock" className="form-label">
-                        Existencia mínima<strong>*</strong>
+                        Existencia mínima: <strong>*</strong>
                       </label>
                       <input
                         {...register('Stock', {
@@ -289,15 +295,15 @@ function CreateSupplies({
                             const parsedUnit = parseInt(Unit);
 
                             if (isNaN(parsedValue)) {
-                              return 'La existencia mínima debe ser un número válido.';
+                              return 'Debe ser un número entero.';
                             }
 
                             if (parsedValue < 0 || parsedValue > 999) {
-                              return 'La existencia mínima debe ser un número entero entre 0 y 999.';
+                              return 'Debe ser un número entero entre 0 y 999.';
                             }
 
                             if (parsedValue > parsedUnit) {
-                              return `La existencia mínima no puede ser mayor que la cantidad de insumo (${parsedUnit}).`;
+                              return `No puede ser mayor que la cantidad: (${parsedUnit}).`;
                             }
                           },
                         })}
@@ -313,28 +319,35 @@ function CreateSupplies({
                   <div className="city">
                     <div className="form-group col-md-6">
                       <label htmlFor="SuppliesCategory_ID" className="form-label">
-                        Categoría<strong>*</strong>
+                        Categoría: <strong>*</strong>
                       </label>
-                      <Select
-                        options={options}
-                        value={selectedCategory}
-                        onChange={handleCategoryChange}
-                        styles={customStyles}
-                        className="form-selects"
-                        theme={(theme) => ({
-                          ...theme,
-                          colors: {
-                            ...theme.colors,
-                            primary: '#e36209',
-                          },
-                        })}
+                      <Controller
+                        control={control}
+                        name="SuppliesCategory_ID"
+                        rules={{ required: 'Este campo es obligatorio' }}
+                        render={({ field }) => (
+                          <Select
+                            options={options}
+                            value={selectedCategory}
+                            onChange={(selectedOption) => {
+                              setSelectedCategory(selectedOption);
+                              field.onChange(selectedOption);
+                            }}
+                            styles={customStyles}
+                            className="form-selects"
+                            theme={(theme) => ({
+                              ...theme,
+                              colors: {
+                                ...theme.colors,
+                                primary: '#e36209',
+                              },
+                            })}
+                          />
+                        )}
                       />
                       {errors.SuppliesCategory_ID && (
-                        <p className="text-red-500">
-                          {errors.SuppliesCategory_ID.message}
-                        </p>
+                        <p className="text-red-500">{errors.SuppliesCategory_ID.message}</p>
                       )}
-                      <div className="invalid-feedback">Ingrese la categoría</div>
                     </div>
                   </div>
 
@@ -343,7 +356,7 @@ function CreateSupplies({
                       <button
                         className="btn btn-primary mr-5"
                         type="submit"
-                        disabled={!isValid || !selectedMeasure || !selectedCategory}
+                        title="Este botón sirve para guardar la información y cerrar la ventana modal."
                       >
                         Confirmar
                       </button>
@@ -351,6 +364,7 @@ function CreateSupplies({
                         className="btn btn-primary"
                         onClick={onCancel}
                         type="submit"
+                        title="Este botón sirve para cerrar la ventana modal sin guardar la información."
                       >
                         Cancelar
                       </button>

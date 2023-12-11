@@ -1,41 +1,53 @@
 import React, { useState, useEffect } from "react";
 import { BiEdit } from "react-icons/bi";
 import { AiFillDelete } from "react-icons/ai";
-import { useNavigate } from "react-router-dom";
 import { MdToggleOn, MdToggleOff } from "react-icons/md";
+import { useSupplies } from "../Context/Supplies.context.jsx";
+import { useCategorySupplies } from '../Context/CategorySupplies.context.jsx';
+import CreateSupplies from "../Components/CreateSupplies.jsx";
+import UpdateSupplies from "../Components/UpdateSupplies.jsx";
+import DeleteSupplies from "../Components/DeleteSupplies.jsx";
 import "../css/style.css";
 import "../css/landing.css";
 
-import { useProduct } from '../Context/Product.context.jsx'
-import { useCategoryProducts } from '../Context/CategoryProducts.context.jsx'
-import CreateProducts from '../Components/CreateProduct.jsx'
+function SuppliesPage() {
+    const { supplies, getSupplies, deleteSupplies, toggleSupplyStatus } = useSupplies();
+    const { Category_supplies } = useCategorySupplies();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedSupplyToDelete, setSelectedSupplyToDelete] = useState(null);
+    const [selectedSupplyToUpdate, setSelectedSupplyToUpdate] = useState(null);
 
-function ProductPage() {
-    const { product, getProducts, toggleSupplyStatus } = useProduct();
-    const { Category_products } = useCategoryProducts();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const navigate = useNavigate();
-
-    const navigateToCreateProduct = () => {
-        setIsModalOpen(true);
-    };
-
-    const handleCreated = () => {
-        getProducts();
-    };
+    useEffect(() => {
+        getSupplies();
+    }, []);
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
     };
 
-    const filteredProduct = product.filter((produc) => {
-        const { Name_Products, Price_Product, ProductCategory_ID, State } = produc;
-        const searchString = `${Name_Products} ${Price_Product} ${ProductCategory_ID} ${State}`.toLowerCase();
+    const filteredSupplies = supplies.filter((supply) => {
+        const {
+            Name_Supplies,
+        } = supply;
+        const searchString =
+            `${Name_Supplies}`.toLowerCase();
         return searchString.includes(searchTerm.toLowerCase());
     });
 
-    const status = product.State ? "" : "desactivado";
+    const handleDelete = (supply) => {
+        setSelectedSupplyToDelete(supply);
+        setDeleteModalOpen(true);
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModalOpen(false);
+        setSelectedSupplyToDelete(null);
+    };
+
+    const handleUpdateSupply = (supply) => {
+        setSelectedSupplyToUpdate(supply);
+    };
 
     return (
         <section className="pc-container">
@@ -43,21 +55,14 @@ function ProductPage() {
                 <div className="row w-100">
                     <div className="col-md-12">
                         <div className=" w-100 col-sm-12">
-
                             <div className="card">
                                 <div className="card-header">
-                                    <h5>Visualización de productos</h5>
+                                    <h5>Visualización de insumos</h5>
                                 </div>
                                 <div className="card-body">
                                     <div className="row">
                                         <div className="col-md-6">
-                                            <button
-                                                className="btn btn-primary"
-                                                onClick={navigateToCreateProduct}
-                                                type="button"
-                                            >
-                                                Registrar
-                                            </button>
+                                            <CreateSupplies />
                                         </div>
                                         <div className="col-md-6">
                                             <div className="form-group">
@@ -79,37 +84,56 @@ function ProductPage() {
                                             <table className="table table-hover">
                                                 <thead>
                                                     <tr>
-                                                        <th className="text-center">Nombre</th>
-                                                        <th className="text-center">Categoria</th>
-                                                        <th className="text-center">Precio</th>
-                                                        <th className="text-center">Estado</th>
-                                                        <th className="text-center">Acciones</th>
+                                                        <th>Nombre</th>
+                                                        <th>Cantidad</th>
+                                                        <th>Medida</th>
+                                                        <th>Existencias</th>
+                                                        <th>Categoria</th>
+                                                        <th>Estado</th>
+                                                        <th>Acciones</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {filteredProduct.map((produc) => (
-                                                        <tr key={produc.ID_Product}>
-                                                            <td>{produc.Name_Products}</td>
+                                                    {filteredSupplies.map((supply) => (
+                                                        <tr key={supply.ID_Supplies}>
+                                                            <td>{supply.Name_Supplies}</td>
+                                                            <td>{supply.Unit}</td>
+                                                            <td>{supply.Measure}</td>
+                                                            <td>{supply.Stock}</td>
                                                             <td>
-                                                                {produc.ProductCategory_ID
-                                                                    ? Category_products.find(
+                                                                {supply.SuppliesCategory_ID
+                                                                    ? Category_supplies.find(
                                                                         (category) =>
-                                                                            category.ID_ProductCategory ===
-                                                                            produc.ProductCategory_ID
-                                                                    )?.Name_ProductCategory || ''
+                                                                            category.ID_SuppliesCategory ===
+                                                                            supply.SuppliesCategory_ID
+                                                                    )?.Name_SuppliesCategory || ''
                                                                     : ''}
                                                             </td>
-                                                            <td>{produc.Price_Product}</td>
-                                                            <td>{produc.State ? 'Habilitado' : 'Deshabilitado'}</td>
+                                                            <td>{supply.State ? 'Habilitado' : 'Deshabilitado'}</td>
                                                             <td>
                                                                 <div style={{ display: "flex", alignItems: "center" }}>
-
+                                                                    <UpdateSupplies
+                                                                        buttonProps={{
+                                                                            buttonClass: `btn btn-icon btn-primary ${!supply.State ? "text-gray-400 cursor-not-allowed" : ""}`,
+                                                                            isDisabled: !supply.State,
+                                                                            buttonText: <BiEdit />,
+                                                                        }}
+                                                                        supplyToEdit={supply}
+                                                                        onUpdate={handleUpdateSupply}
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => handleDelete(supply)}
+                                                                        className={`btn btn-icon btn-danger ${!supply.State ? "text-gray-400 cursor-not-allowed" : ""}`}
+                                                                        disabled={!supply.State}
+                                                                    >
+                                                                        <AiFillDelete />
+                                                                    </button>
                                                                     <button
                                                                         type="button"
-                                                                        className={`btn btn-icon btn-success ${produc.State ? "active" : "inactive"}`}
-                                                                        onClick={() => toggleSupplyStatus(produc.ID_Product)}
+                                                                        className={`btn btn-icon btn-success ${supply.State ? "active" : "inactive"}`}
+                                                                        onClick={() => toggleSupplyStatus(supply.ID_Supplies)}
                                                                     >
-                                                                        {produc.State ? (
+                                                                        {supply.State ? (
                                                                             <MdToggleOn className={`estado-icon active`} />
                                                                         ) : (
                                                                             <MdToggleOff className={`estado-icon inactive`} />
@@ -121,14 +145,6 @@ function ProductPage() {
                                                     ))}
                                                 </tbody>
                                             </table>
-                                            {isModalOpen && (
-                                                <div className="fixed inset-0 flex items-center justify-center z-50">
-                                                    <div className="modal-overlay" onClick={() => setIsModalOpen(false)}></div>
-                                                    <div className="modal-container">
-                                                        <CreateProducts onClose={() => setIsModalOpen(false)} onCreated={handleCreated} />
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -137,8 +153,29 @@ function ProductPage() {
                     </div>
                 </div>
             </div>
+
+            {isDeleteModalOpen && (
+                <DeleteSupplies
+                    onClose={closeDeleteModal}
+                    onDelete={() => {
+                        if (selectedSupplyToDelete) {
+                            deleteSupplies(selectedSupplyToDelete.ID_Supplies);
+                            closeDeleteModal();
+                        }
+                    }}
+                />
+            )}
+
+            {selectedSupplyToUpdate && (
+                <UpdateSupplies
+                    supplyToEdit={selectedSupplyToUpdate}
+                    onUpdate={() => {
+                        setSelectedSupplyToUpdate(null);
+                    }}
+                />
+            )}
         </section>
     );
 }
 
-export default ProductPage;
+export default SuppliesPage;

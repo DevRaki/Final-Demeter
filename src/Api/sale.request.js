@@ -1,4 +1,4 @@
-import axios from './axios.js'
+import axios from './Axios.js'
 
 export const Createsale = (data) => axios.post(`/Csale`, data);
 export const CreatesaleDetail = (data) => axios.post(`/Csaledetail`, data);
@@ -9,4 +9,3 @@ export const UpdSale = (data) => axios.put(`/UpdateSale`, data);
 export const pay = (data) => axios.put(`/paySale`, data);
 export const GetoneSale = (ID_Sale) => axios.get(`/getSale/${ID_Sale}`);
 export const getSale = () => axios.get(`/sale`);
-

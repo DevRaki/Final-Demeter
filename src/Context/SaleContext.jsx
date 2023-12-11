@@ -21,13 +21,11 @@ export const SaleProvider = ({ children }) => {
     const [action, setAction] = useState([]) // 1: Create 2: Update
 
 
-
-    const Create = async (waiter) => {
+    const Create = async () => {
         try {
             const res = await Createsale({
                 Total : total,
-                SubTotal : total,
-                User_ID : waiter 
+                SubTotal : total
             });
             setSale(res.data)
         } catch (error) {
@@ -105,10 +103,9 @@ export const SaleProvider = ({ children }) => {
 
     }
 
-    const paySale = async(data, payment) =>{
+    const paySale = async(data) =>{
         try {
-           const res =await pay({"ID_Sale": data,
-           "Payment": payment});
+           const res =await pay({"ID_Sale": data});
            console.log(res.data)
         } catch (error) {
             console.log(error)

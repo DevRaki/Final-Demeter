@@ -601,11 +601,11 @@ footer .b-footer .bottom-tag {
 
 .modal-container {
     background-color: white;
-    padding: 20px;
+    padding: 0px;
     border-radius: 5px;
     z-index: 1001;
     max-width: 90%;
-    width: 400px;
+    width: 0px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -622,8 +622,10 @@ footer .b-footer .bottom-tag {
     margin-bottom: -50px;
 }
 
-.barra-container {
-    margin-top: -10px;
-    margin-bottom: -10px;
-    margin-left: 105px;
-  }
+.estado-icon.active {
+    color: white;
+}
+
+.estado-icon.inactive {
+    color: #012200;
+}

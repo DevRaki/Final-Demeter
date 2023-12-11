@@ -3,34 +3,49 @@ import { BiEdit } from "react-icons/bi";
 import { AiFillDelete } from "react-icons/ai";
 import { MdToggleOn, MdToggleOff } from "react-icons/md";
 import { useCategoryProducts } from '../Context/CategoryProducts.context.jsx';
-// import { useProducts } from "../Context/Products.context.jsx";
+import { useProduct } from '../Context/Product.context.jsx';
 import CreateProductCategory from "../Components/CreateProductCategory.jsx";
 import UpdateProductCategory from "../Components/UpdateProductCategory.jsx";
 import DeleteProductCategory from "../Components/DeleteProductCategory.jsx";
 import CannotDeleteCategory from "../Components/CannotDeleteProductsCategory.jsx";
 import CannotDisableCategoryProduct from '../Components/CannotDisableCategoryProduct.jsx';
-
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import "../css/style.css";
 import "../css/landing.css";
 
 function ProductCategoryPage() {
   const { Category_products, getCategory_products, deleteCategory_products, toggleCategoryProductStatus } = useCategoryProducts();
-//   const { products, getProducts } = useProducts();
+  const { Product, getProduct } = useProduct();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedProductCategoryToDelete, setSelectedProductCategoryToDelete] = useState(null);
   const [selectedProductCategoryToUpdate, setSelectedProductCategoryToUpdate] = useState(null);
   const [showWarning, setShowWarning] = useState(false);
   const [showWarningDisable, setShowWarningDisable] = useState(false);
+  const [showEnabledOnly, setShowEnabledOnly] = useState(
+    localStorage.getItem("showEnabledOnlyProduct") === "true"
+  );
+  const ITEMS_PER_PAGE = 2;
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     getCategory_products();
-    // getProducts();
+    setCurrentPage(1);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("showEnabledOnlyProduct", showEnabledOnly);
+  }, [showEnabledOnly]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleCheckboxChange = () => {
+    setShowEnabledOnly(!showEnabledOnly);
   };
 
   const filteredProductsCategory = Category_products.filter((productCategory) => {
@@ -42,19 +57,30 @@ function ProductCategoryPage() {
     return searchString.includes(searchTerm.toLowerCase());
   });
 
-  const handleDelete = async (productCategory) => {
-    // const categoryID = productCategory.ID_ProductCaProduct
-    // const productInCategory = product.filter((product) => product.ProductCategory_ID === categoryID);
+  const enabledProductsCategory = filteredProductsCategory.filter((productCategory) => productCategory.State);
+  const disabledProductsCategory = filteredProductsCategory.filter((productCategory) => !productCategory.State);
+  const sortedProductsCategory = [...enabledProductsCategory, ...disabledProductsCategory];
 
-    // if (productInCategory.length > 0) {
-      // setShowWarning(true);
-      //setDeleteModalOpen(false);
-    // } else {
+  const pageCount = Math.ceil(sortedProductsCategory.length / ITEMS_PER_PAGE);
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const visibleProductsCategory = sortedProductsCategory.slice(startIndex, endIndex);
+
+  const handleDelete = async (productCategory) => {
+    const categoryID = productCategory.ID_ProductCategory;
+
+    const productInCategory = Product.filter((product) => product.ProductCategory_ID === categoryID);
+
+    if (productInCategory.length > 0) {
+      setShowWarning(true);
+    } else {
       setShowWarning(false);
       setSelectedProductCategoryToDelete(productCategory);
       setDeleteModalOpen(true);
-    // }
+    }
   };
+
 
   const closeDeleteModal = () => {
     setDeleteModalOpen(false);
@@ -69,7 +95,7 @@ function ProductCategoryPage() {
   const handleToggleStatus = async (productCategory) => {
     const categoryID = productCategory.ID_ProductCategory;
 
-    const productInCategory = product.filter((product) => supply.ProductCategory_ID === categoryID);
+    const productInCategory = Product.filter((product) => product.ProductCategory_ID === categoryID);
 
     if (productInCategory.length > 0) {
       setShowWarningDisable(true);
@@ -79,6 +105,9 @@ function ProductCategoryPage() {
     }
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
 
   return (
     <section className="pc-container">
@@ -88,12 +117,27 @@ function ProductCategoryPage() {
             <div className=" w-100 col-sm-12">
               <div className="card">
                 <div className="card-header">
-                  <h5>Visualización de categoría de insumos</h5>
+                  <h5>Visualización de categoría de productos</h5>
                 </div>
                 <div className="card-body">
                   <div className="row">
                     <div className="col-md-6">
                       <CreateProductCategory />
+                    </div>
+                    <div className="movement">
+                      <div className="form-check">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="showEnabledOnly"
+                          checked={showEnabledOnly}
+                          onChange={handleCheckboxChange}
+                          title="Este interruptor sirve para visualizar únicamente las categorías habilitadas."
+                        />
+                        <label className="form-check-label" htmlFor="showEnabledOnly">
+                          Mostrar solo habilitados
+                        </label>
+                      </div>
                     </div>
                     <div className="col-md-6">
                       <div className="form-group">
@@ -121,7 +165,7 @@ function ProductCategoryPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredProductsCategory.map((productCategory) => (
+                          {visibleProductsCategory.map((productCategory) => (
                             <tr key={productCategory.ID_ProductCategory}>
                               <td>{productCategory.Name_ProductCategory}</td>
                               <td>{productCategory.State ? 'Habilitado' : 'Deshabilitado'}</td>
@@ -140,6 +184,7 @@ function ProductCategoryPage() {
                                     onClick={() => handleDelete(productCategory)}
                                     className={`btn btn-icon btn-danger ${!productCategory.State ? "text-gray-400 cursor-not-allowed" : ""}`}
                                     disabled={!productCategory.State}
+                                    title="Este botón sirve para eliminar la categoría."
                                   >
                                     <AiFillDelete />
                                   </button>
@@ -147,6 +192,7 @@ function ProductCategoryPage() {
                                     type="button"
                                     className={`btn btn-icon btn-success ${productCategory.State ? "active" : "inactive"}`}
                                     onClick={() => handleToggleStatus(productCategory)}
+                                    title="Este botón sirve para cambiar el estado de la categoría."
                                   >
                                     {productCategory.State ? (
                                       <MdToggleOn className={`estado-icon active`} />
@@ -168,6 +214,26 @@ function ProductCategoryPage() {
           </div>
         </div>
       </div>
+
+      <div className="pagination-container pagination">
+        <Stack spacing={2}>
+          <Pagination
+            count={pageCount}
+            page={currentPage}
+            siblingCount={2}
+            onChange={handlePageChange}
+            variant="outlined"
+            shape="rounded"
+            title="Este botón sirve para cambiar de página."
+          />
+        </Stack>
+      </div>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          Página {currentPage} de {pageCount}
+        </Typography>
+      </Box>
 
       {isDeleteModalOpen && (
         <DeleteProductCategory

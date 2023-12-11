@@ -9,6 +9,10 @@ import UpdateSuppliesCategory from "../Components/UpdateSuppliesCategory.jsx";
 import DeleteSuppliesCategory from "../Components/DeleteSupplies.jsx";
 import CannotDeleteCategory from "../Components/CannotDeleteSuppliesCategory.jsx";
 import CannotDisableCategorySupplies from '../Components/CannotDisableCategorySupplies.jsx';
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import "../css/style.css";
 import "../css/landing.css";
 
@@ -21,15 +25,29 @@ function SuppliesCategoryPage() {
   const [selectedSupplyCategoryToUpdate, setSelectedSupplyCategoryToUpdate] = useState(null);
   const [showWarning, setShowWarning] = useState(false);
   const [showWarningDisable, setShowWarningDisable] = useState(false);
+  const [showEnabledOnly, setShowEnabledOnly] = useState(
+    localStorage.getItem("showEnabledOnly") === "true"
+  );
+  const ITEMS_PER_PAGE = 2;
+  const [currentPage, setCurrentPage] = useState(1);
+
 
   useEffect(() => {
     getCategory_supplies();
     getSupplies();
+    setCurrentPage(1);
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("showEnabledOnly", showEnabledOnly);
+  }, [showEnabledOnly]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleCheckboxChange = () => {
+    setShowEnabledOnly(!showEnabledOnly);
   };
 
   const filteredSuppliesCategory = Category_supplies.filter((suppliesCategory) => {
@@ -41,6 +59,16 @@ function SuppliesCategoryPage() {
     return searchString.includes(searchTerm.toLowerCase());
   });
 
+  const enabledSuppliesCategory = filteredSuppliesCategory.filter((suppliesCategory) => suppliesCategory.State);
+  const disabledSuppliesCategory = filteredSuppliesCategory.filter((suppliesCategory) => !suppliesCategory.State);
+  const sortedSuppliesCategory = [...enabledSuppliesCategory, ...disabledSuppliesCategory];
+
+  const pageCount = Math.ceil(sortedSuppliesCategory.length / ITEMS_PER_PAGE);
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const visibleSuppliesCategory = sortedSuppliesCategory.slice(startIndex, endIndex);
+
   const handleDelete = async (supplyCategory) => {
     const categoryID = supplyCategory.ID_SuppliesCategory;
 
@@ -48,13 +76,13 @@ function SuppliesCategoryPage() {
 
     if (suppliesInCategory.length > 0) {
       setShowWarning(true);
-      //setDeleteModalOpen(false);
     } else {
       setShowWarning(false);
       setSelectedSupplyCategoryToDelete(supplyCategory);
       setDeleteModalOpen(true);
     }
   };
+
   const closeDeleteModal = () => {
     setDeleteModalOpen(false);
     setSelectedSupplyCategoryToDelete(null);
@@ -78,6 +106,9 @@ function SuppliesCategoryPage() {
     }
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
 
   return (
     <section className="pc-container">
@@ -93,6 +124,21 @@ function SuppliesCategoryPage() {
                   <div className="row">
                     <div className="col-md-6">
                       <CreateSuppliesCategory />
+                    </div>
+                    <div className="movement">
+                      <div className="form-check">
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="showEnabledOnly"
+                          checked={showEnabledOnly}
+                          onChange={handleCheckboxChange}
+                          title="Este interruptor sirve para visualizar únicamente las categorías habilitadas."
+                        />
+                        <label className="form-check-label" htmlFor="showEnabledOnly">
+                          Mostrar solo habilitados
+                        </label>
+                      </div>
                     </div>
                     <div className="col-md-6">
                       <div className="form-group">
@@ -120,7 +166,7 @@ function SuppliesCategoryPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredSuppliesCategory.map((suppliesCategory) => (
+                          {visibleSuppliesCategory.map((suppliesCategory) => (
                             <tr key={suppliesCategory.ID_SuppliesCategory}>
                               <td>{suppliesCategory.Name_SuppliesCategory}</td>
                               <td>{suppliesCategory.State ? 'Habilitado' : 'Deshabilitado'}</td>
@@ -139,6 +185,7 @@ function SuppliesCategoryPage() {
                                     onClick={() => handleDelete(suppliesCategory)}
                                     className={`btn btn-icon btn-danger ${!suppliesCategory.State ? "text-gray-400 cursor-not-allowed" : ""}`}
                                     disabled={!suppliesCategory.State}
+                                    title="Este botón sirve para eliminar la categoría."
                                   >
                                     <AiFillDelete />
                                   </button>
@@ -146,6 +193,7 @@ function SuppliesCategoryPage() {
                                     type="button"
                                     className={`btn btn-icon btn-success ${suppliesCategory.State ? 'active' : 'inactive'}`}
                                     onClick={() => handleToggleStatus(suppliesCategory)}
+                                    title="Este botón sirve para cambiar el estado de la categoría."
                                   >
                                     {suppliesCategory.State ? (
                                       <MdToggleOn className={`estado-icon active`} />
@@ -167,6 +215,26 @@ function SuppliesCategoryPage() {
           </div>
         </div>
       </div>
+
+      <div className="pagination-container pagination">
+        <Stack spacing={2}>
+          <Pagination
+            count={pageCount}
+            page={currentPage}
+            siblingCount={2}
+            onChange={handlePageChange}
+            variant="outlined"
+            shape="rounded"
+            title="Este botón sirve para cambiar de página."
+          />
+        </Stack>
+      </div>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          Página {currentPage} de {pageCount}
+        </Typography>
+      </Box>
 
       {isDeleteModalOpen && (
         <DeleteSuppliesCategory

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { BiEdit } from "react-icons/bi";
 import { AiFillDelete } from "react-icons/ai";
 import { MdToggleOn, MdToggleOff } from "react-icons/md";
@@ -8,7 +8,7 @@ import "../css/landing.css";
 import { useRole } from "../Context/Role.context";
 import { useUser } from "../Context/User.context.jsx";
 import CreateUser from "../Components/CreateUser";
-import UpdateUser from '../Components/UpdateUser';
+import EditUser from '../Components/EditUser';
 import DeleteUser from "../Components/DeleteUser";
 
 function UserPage() {
@@ -20,7 +20,6 @@ function UserPage() {
     const [userToEdit, setUserToEdit] = useState(null);
     const [userToDelete, setUserToDelete] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    // const [role, setRole] = useState([])
 
     useEffect(() => {
         getUsers();
@@ -67,6 +66,10 @@ function UserPage() {
         return searchString.includes(searchTerm.toLowerCase());
     });
 
+    const roles = role.find(
+        (rol) => rol.ID_Role === user.Role_ID
+    );
+
     const barraClass = user.State ? "" : "desactivado";
 
     return (
@@ -112,7 +115,7 @@ function UserPage() {
                                             <table className="table table-hover">
                                                 <thead>
                                                     <tr>
-                                                        <th className="text-center">Tipo</th>
+                                                        <th className="text-center">Tipo de documento</th>
                                                         <th className="text-center">N° documento</th>
                                                         <th className="text-center">Nombre</th>
                                                         <th className="text-center">Apellido</th>
@@ -123,47 +126,48 @@ function UserPage() {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {filteredUsers.map((users) => (
-                                                        <tr key={users.ID_User}>
-                                                            <td>{users.Type_Document}</td>
-                                                            <td>{users.Document}</td>
-                                                            <td>{users.Name_User}</td>
-                                                            <td>{users.LastName_User}</td>
-                                                            <td>{users.Email}</td>
+                                                    {filteredUsers.map((user) => (
+                                                        <tr key={user.ID_User}>
+                                                            <td>{user.Type_Document}</td>
+                                                            <td>{user.Document}</td>
+                                                            <td>{user.Name_User}</td>
+                                                            <td>{user.LastName_User}</td>
+                                                            <td>{user.Email}</td>
                                                             <td>
-                                                                {users.Role_ID
+                                                                {user.SuppliesCategory_ID
                                                                     ? role.find(
-                                                                        (rol) =>
-                                                                            rol.ID_Role ===
-                                                                            users.Role_ID
-                                                                    )?.Name_Role || '' : ''
-                                                                }
+                                                                        (category) =>
+                                                                            category.ID_SuppliesCategory ===
+                                                                            user.SuppliesCategory_ID
+                                                                    )?.Name_SuppliesCategory || ''
+                                                                    : ''}
+                                                                {roles && roles.Name_Role}
                                                             </td>
                                                             <td className={`${barraClass}`}>
-                                                                {users.State ? "Habilitado" : "Deshabilitado"}
+                                                                {user.State ? "Habilitado" : "Deshabilitado"}
                                                             </td>
                                                             <td>
-                                                                <div style={{ display: "flex", alignItems: "center", padding: '3px' }}>
+                                                                <div style={{ display: "flex", alignItems: "center" }}>
                                                                     <button
-                                                                        onClick={() => handleEdit(users)}
-                                                                        className={`ml-1 btn btn-icon btn-primary ${!users.State ? "text-gray-400 cursor-not-allowed" : ""}`}
-                                                                        disabled={!users.State}
+                                                                        onClick={() => handleEdit(user)}
+                                                                        className={`btn btn-icon btn-primary ${!user.State ? "text-gray-400 cursor-not-allowed" : ""}`}
+                                                                        disabled={!user.State}
                                                                     >
                                                                         <BiEdit />
                                                                     </button>
                                                                     <button
-                                                                        onClick={() => handleDelete(users)}
-                                                                        className={`ml-1 btn btn-icon btn-danger ${!users.State ? "text-gray-400 cursor-not-allowed" : ""}`}
-                                                                        disabled={!users.State}
+                                                                        onClick={() => handleDelete(user)}
+                                                                        className={`btn btn-icon btn-danger ${!user.State ? "text-gray-400 cursor-not-allowed" : ""}`}
+                                                                        disabled={!user.State}
                                                                     >
                                                                         <AiFillDelete />
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        className={`ml-1 btn btn-icon btn-success ${barraClass}`}
-                                                                        onClick={() => toggleUserStatus(users.ID_User)}
+                                                                        className={`btn btn-icon btn-success ${barraClass}`}
+                                                                        onClick={() => toggleUserStatus(user.ID_User)}
                                                                     >
-                                                                        {users.State ? (
+                                                                        {user.State ? (
                                                                             <MdToggleOn className={`estado-icon active ${barraClass}`} />
                                                                         ) : (
                                                                             <MdToggleOff className={`estado-icon inactive ${barraClass}`} />
@@ -196,7 +200,7 @@ function UserPage() {
                                                 <div className="fixed inset-0 flex items-center justify-center z-50">
                                                     <div className="modal-overlay" onClick={() => setIsEditModalOpen(false)}></div>
                                                     <div className="modal-container">
-                                                        <UpdateUser onClose={() => setIsEditModalOpen(false)} userToEdit={userToEdit} />
+                                                        <EditUser onClose={() => setIsEditModalOpen(false)} userToEdit={userToEdit} />
                                                     </div>
                                                 </div>
                                             )}

@@ -25,12 +25,13 @@ function CreateCategory_products({
         buttonText: 'Registrar',
     },
 }) {
-const {
-    register,
-    handleSubmit,
-    setError,
-    formState: { errors, isValid },
-} = useForm();
+    const {
+        register,
+        handleSubmit,
+        setError,
+        formState: { errors },
+        reset,
+    } = useForm();
 
     const { Category_products, createCategory_products } = useCategoryProducts();
 
@@ -51,10 +52,12 @@ const {
 
         createCategory_products(values);
         setOpen(false);
+        reset();
     });
 
     const onCancel = () => {
         setOpen(false);
+        reset();
     };
 
     return (
@@ -77,7 +80,7 @@ const {
                     <div className="col-md-12">
                         <div className="card">
                             <div className="card-header">
-                                <h5>Registro de categoria de productos</h5>
+                                <h5>Registro de categoría de productos</h5>
                             </div>
                             <div className="card-body">
                                 <form
@@ -90,15 +93,15 @@ const {
                                     <div className="city">
                                         <div className="form-group col-md-6">
                                             <label htmlFor="Name_productCategory" className="form-label">
-                                                Nombre<strong>*</strong>
+                                                Nombre: <strong>*</strong>
                                             </label>
                                             <input
                                                 {...register('Name_ProductCategory', {
                                                     required: 'Este campo es obligatorio',
                                                     pattern: {
-                                                        value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
+                                                        value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/u,
                                                         message:
-                                                            'El nombre de la categoria de producto debe tener la primera letra en mayúscula, el resto en minúscula y solo se permiten letras.',
+                                                            'Debe tener la primera letra en mayúscula, el resto en minúscula.',
                                                     },
                                                 })}
                                                 type="text"
@@ -117,7 +120,7 @@ const {
                                             <button
                                                 className="btn btn-primary mr-5"
                                                 type="submit"
-                                                disabled={!isValid}
+                                                title="Este botón sirve para guardar la información y cerrar la ventana modal."
                                             >
                                                 Confirmar
                                             </button>
@@ -125,6 +128,7 @@ const {
                                                 className="btn btn-primary"
                                                 onClick={onCancel}
                                                 type="submit"
+                                                title="Este botón sirve para cerrar la ventana modal sin guardar la información."
                                             >
                                                 Cancelar
                                             </button>
