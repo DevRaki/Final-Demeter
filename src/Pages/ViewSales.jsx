@@ -85,7 +85,11 @@ function ViewSales() {
     setFilterByState(!filterByState);
   };
 
-  const displaySales = Sales.slice(pagesVisited, pagesVisited + salesPerPage).filter((sale) => {
+  const displaySales = Sales
+  .slice(0) // Create a shallow copy of the array
+  .reverse() // Reverse the copied array
+  .slice(pagesVisited, pagesVisited + salesPerPage) // Apply pagination to the reversed array
+  .filter((sale) => {
     const userMatch = (sale.User_ID ?? '').toString().includes(searchTerm);
     const stateMatch = !filterByState || (filterByState && sale.StatePay);
 
@@ -150,7 +154,6 @@ function ViewSales() {
                       </div>
                     </div>
                   </div>
-                  {/* ... (código anterior) ... */}
                   <div className="card-body table-border-style">
                     <div className="table-responsive">
                       <table className="table table-hover ">
@@ -167,79 +170,93 @@ function ViewSales() {
                           </tr>
                         </thead>
                         <tbody>
-                        {displaySales.reverse().map((sale, index) => (
-  <tr key={index}>
-    <td>{sale.ID_Sale}</td>
-    <td>{sale.StatePay ? 'Pendiente' : 'Pagado'}</td>
-    <td>{sale.Total}</td>
-    <td>{sale.Total}</td>
-    <td>
-      {sale.User_ID
-        ? getUserById(sale.User_ID)?.Name_User || 'Venta Rapida'
-        : 'Venta Rapida'}
-    </td>
-    <td className="flex flex-row justify-center space-x-[2vh]">
-      {isSaleEditable(sale) ? (
-        <Link to="/sales">
-          <button
-            type="button"
-            className="btn btn-icon btn-primary"
-            onClick={() => {
-              getOne(sale.ID_Sale);
-              selectAction(2);
-            }}
-          >
-            <i>
-              <BiEdit></BiEdit>
-            </i>
-          </button>
-        </Link>
-      ) : (
-        <button
-          type="button"
-          className="btn btn-icon btn-primary"
-          disabled
-        >
-          <i>
-            <BiEdit></BiEdit>
-          </i>
-        </button>
-      )}
-      <button
-        type="button"
-        className="btn btn-icon btn-secondary"
-        onClick={() => {
-          getOne(sale.ID_Sale).then(openHelloModal());
-        }}
-      >
-        <i>
-          <AiOutlineEye></AiOutlineEye>
-        </i>
-      </button>
-      {/* Deshabilitar el botón si la venta está pagada */}
-      <button
-        type="button"
-        className="btn btn-icon btn-success"
-        onClick={() => {
-          if (!sale.StatePay) {
-            openModal();
-            setID(sale.ID_Sale);
-          }
-        }}
-        disabled={!sale.StatePay}
-      >
-        <i>
-          <FaRegMoneyBillAlt></FaRegMoneyBillAlt>
-        </i>
-      </button>
-    </td>
-  </tr>
-))}
+                          {displaySales.map((sale, index) => (
+                            <tr key={index}>
+                              <td>{sale.ID_Sale}</td>
+                              <td>
+                                {sale.StatePay ? 'Pendiente' : 'Pagado'}
+                              </td>
+                              <td>{sale.Total}</td>
+                              <td>{sale.Total}</td>
+                              <td>
+                                {sale.User_ID
+                                  ? getUserById(sale.User_ID)?.Name_User ||
+                                    'Venta Rapida'
+                                  : 'Venta Rapida'}
+                              </td>
+                              <td className="flex flex-row justify-center space-x-[2vh]">
+                                {isSaleEditable(sale) ? (
+                                  <Link to="/sales">
+                                    <button
+                                      type="button"
+                                      className="btn btn-icon btn-primary"
+                                      onClick={() => {
+                                        getOne(sale.ID_Sale);
+                                        selectAction(2);
+                                      }}
+                                    >
+                                      <i>
+                                        <BiEdit></BiEdit>
+                                      </i>
+                                    </button>
+                                  </Link>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="btn btn-icon btn-primary"
+                                    disabled
+                                  >
+                                    <i>
+                                      <BiEdit></BiEdit>
+                                    </i>
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  className="btn btn-icon btn-secondary"
+                                  onClick={() => {
+                                    getOne(sale.ID_Sale).then(openHelloModal());
+                                  }}
+                                >
+                                  <i>
+                                    <AiOutlineEye></AiOutlineEye>
+                                  </i>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-icon btn-success"
+                                  onClick={() => {
+                                    openModal();
+                                    setID(sale.ID_Sale);
+                                  }}
+                                  disabled={!sale.StatePay}
+                                >
+                                  <i>
+                                    <FaRegMoneyBillAlt></FaRegMoneyBillAlt>
+                                  </i>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>
                   </div>
-                  {/* ... (código posterior) ... */}
+                  <div className="ml-[50vh]">
+                    <ReactPaginate
+                      previousLabel={'<'}
+                      nextLabel={'>'}
+                      pageCount={pageCount}
+                      onPageChange={handlePageClick}
+                      containerClassName={'pagination space-x-2 mt-4'}
+                      previousLinkClassName={'text-gray-600 rounded-full p-2'}
+                      nextLinkClassName={'text-gray-600 rounded-full p-2'}
+                      disabledClassName={'text-gray-300 cursor-not-allowed'}
+                      activeClassName={
+                        'bg-red-500 text-white rounded-full pl-2 pr-2'
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>
