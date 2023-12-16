@@ -4,6 +4,7 @@ import { useSaleContext } from '../Context/SaleContext';
 import { useProduct } from '../Context/ProductContext';
 import { IoIosAdd } from 'react-icons/io';
 import { AiOutlineMinus } from 'react-icons/ai';
+import ReactPaginate from 'react-paginate';
 import { useUser } from '../Context/User.context.jsx';
 
 function Bill() {
@@ -14,8 +15,8 @@ function Bill() {
     const [salemss, Setsalemss] = useState();
     const [waiters, setWaiters] = useState([]);
     const [selectedWaiter, setSelectedWaiter] = useState();
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 5;
+    const [currentPage, setCurrentPage] = useState(0);
+    const ITEMS_PER_PAGE = 4;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -98,8 +99,12 @@ function Bill() {
 
     const forceUpdate = useForceUpdate();
 
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const startIndex = currentPage * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
+
+    const handlePageClick = ({ selected }) => {
+        setCurrentPage(selected);
+    };
 
     return (
         <div className="relative text-center h-full w-full flex flex-col mt-[3vh] items-center">
@@ -170,6 +175,21 @@ function Bill() {
                     </p>
                 </div>
             </form>
+
+            {/* Paginación */}
+            <div className="pagination mt-4">
+                <ReactPaginate
+                    previousLabel={'<'}
+                    nextLabel={'>'}
+                    pageCount={Math.ceil(newDetails.length / ITEMS_PER_PAGE)}
+                    onPageChange={handlePageClick}
+                    containerClassName={'pagination space-x-2 mt-4'}
+                    previousLinkClassName={'text-gray-600 rounded-full p-2'}
+                    nextLinkClassName={'text-gray-600 rounded-full p-2'}
+                    disabledClassName={'text-gray-300 cursor-not-allowed'}
+                    activeClassName={'bg-blue-500 text-white rounded-full pl-2 pr-2'}
+                />
+            </div>
 
             {/* Botones */}
             <div className="buttons flex-row space-x-[3vh]">
