@@ -19,6 +19,12 @@ const style = {
     pt: 2,
     px: 4,
     pb: 3,
+    '@media (max-width: 770px)': {
+        width: '75%',
+    },
+    '@media (max-width: 315px)': {
+        width: '240px',
+    },
 };
 
 const customStyles = {
@@ -86,9 +92,6 @@ function UpdateSupplies({
         }
     }, [supplyToEdit, Category_supplies]);
 
-    const handleMeasureChange = (selectedOption) => {
-        setSelectedMeasure(selectedOption);
-    };
 
     function removeAccentsAndSpaces(str) {
         return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f\s]/g, "");
@@ -113,6 +116,8 @@ function UpdateSupplies({
 
             const supplie = { ...supplyToEdit, ...values };
             supplie.Measure = selectedMeasure.value;
+            supplie.SuppliesCategory_ID = selectedCategory.value;
+
             try {
                 await updateSupplies(supplie.ID_Supplies, supplie);
                 setOpen(false);
@@ -187,10 +192,14 @@ function UpdateSupplies({
                                                     setValueAs: (value) =>
                                                         value
                                                             .trim()
-                                                            .replace(/\s+/g, ' ') 
-                                                            .toLowerCase() 
+                                                            .replace(/\s+/g, ' ')
+                                                            .toLowerCase()
                                                             .replace(/^(.)/, (match) => match.toUpperCase()),
                                                 })}
+                                                maxLength={30}
+                                                onInput={(e) => {
+                                                    e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ\s]/g, '');
+                                                }}
                                                 type="text"
                                                 className="form-control"
                                             />
@@ -223,6 +232,10 @@ function UpdateSupplies({
                                                         },
                                                     },
                                                 })}
+                                                maxLength={8}
+                                                onInput={(e) => {
+                                                    e.target.value = e.target.value.replace(/[^\d.]/g, '');
+                                                }}
                                                 type="text"
                                                 className="form-control"
                                             />
@@ -240,7 +253,7 @@ function UpdateSupplies({
                                             <Controller
                                                 control={control}
                                                 name="Measure"
-                                                rules={{ required: 'Este campo es obligatorio' }}
+                                                rules={{ required: false }}
                                                 render={({ field }) => (
                                                     <Select
                                                         options={[
@@ -300,6 +313,10 @@ function UpdateSupplies({
                                                         },
                                                     },
                                                 })}
+                                                maxLength={4}
+                                                onInput={(e) => {
+                                                    e.target.value = e.target.value.replace(/[^\d.]/g, '');
+                                                }}
                                                 type="text"
                                                 className="form-control"
                                             />
@@ -310,14 +327,14 @@ function UpdateSupplies({
                                     </div>
 
                                     <div className="city">
-                                        <div className="form-group col-md-6">
+                                        <div className="form-group col-md-6 select-rebeld">
                                             <label htmlFor="SuppliesCategory_ID" className="form-label">
                                                 Categoría:
                                             </label>
                                             <Controller
                                                 control={control}
                                                 name="SuppliesCategory_ID"
-                                                rules={{ required: 'Este campo es obligatorio' }}
+                                                rules={{ required: false }}
                                                 render={({ field }) => (
                                                     <Select
                                                         options={options}
@@ -357,7 +374,7 @@ function UpdateSupplies({
                                                 Confirmar
                                             </button>
                                             <button
-                                                className="btn btn-primary"
+                                                className="btn btn-danger"
                                                 onClick={onCancel}
                                                 type="submit"
                                                 title="Este botón sirve para cerrar la ventana modal sin guardar la información."

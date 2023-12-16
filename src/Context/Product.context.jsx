@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from "react";
-import { getProductsRequest, getProductByCategoryRequest, createProductsRequest, statusProductsRequest, updateProductsRequest, deleteProductsRequest } from "../Api/Product.request.js"
-import {  getProductSale, getAllProduct, getDetailProductRequest,getDetailProductRequest2, createDetailPRequest, deleteDetailProductRequest } from "../Api/Product.request.js" //Detalles
+import { getProductsRequest, getProductByCategoryRequest, createProductsRequest, statusProductsRequest, updateProductsRequest, deleteProductsRequest, getProductByIdRequest } from "../Api/Product.request.js"
+import { getProductSale, getAllProduct, getDetailProductRequest, getDetailProductRequest2, createDetailPRequest, deleteDetailProductRequest } from "../Api/Product.request.js" //Detalles
+import useLocaStorage from "../hooks/useLocaStorage.jsx";
 
 const ProductContext = createContext();
 
@@ -19,26 +20,22 @@ export function Product({ children }) {
     const [Products, setProducts] = useState([]);
     const [Product, setproduct] = useState([]);
     const [AllProducts, setAllProducts] = useState([]);
-    const [CurrentProd, setCurrentProd] = useState();
-    
+    const [CurrentProd, setCurrentProd] = useLocaStorage("currentProd", null);
+
 
     const getCurrentProduct = (id) => {
         try {
             setCurrentProd(id)
-            
-            
-            
         } catch (error) {
             console.error(error);
         }
     }
-    
 
     const getProducts = async () => {
         try {
             const res = await getProductsRequest();
             setProduct(res.data);
-            
+
         } catch (error) {
             console.error(error);
         }
@@ -111,17 +108,15 @@ export function Product({ children }) {
     const getDetailProduct2 = async (id) => {
         try {
             const res = await getDetailProductRequest2(id);
-            
+            return res;
         } catch (error) {
             console.error(error);
         }
     }
 
-
-    const createDetailP = async ( datilsP) => {
+    const createDetailP = async (datilsP) => {
         try {
-            await createDetailPRequest( datilsP);
-            getDetailProduct();
+            await createDetailPRequest(datilsP);
         } catch (error) {
             console.error(error);
         }
@@ -136,16 +131,15 @@ export function Product({ children }) {
             console.log(error);
         }
     }
-    
+
     const fetchProduct = async (id) => {
         try {
             const res = await getProductSale(id);
-            return(res.data)
+            return (res.data)
         } catch (error) {
             console.log(error)
         }
     }
-
 
     const getProduct = async (id) => {
         try {
@@ -153,6 +147,17 @@ export function Product({ children }) {
             setproduct(res.data)
         } catch (error) {
             console.log(error)
+        }
+    }
+
+    const getProductById = async (id) => {
+        try {
+            const res = await getProductByIdRequest(id);
+            console.log("res2", res)
+            return res.data
+        } catch (error) {
+            console.log("error", error.message)
+            return {}
         }
     }
 
@@ -188,8 +193,8 @@ export function Product({ children }) {
             CurrentProd,
             fetchProduct,
             getProduct,
-            getwholeProducts 
-            
+            getwholeProducts,
+            getProductById
         }}>
             {children}
         </ProductContext.Provider>

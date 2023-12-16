@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import '../css/style.css'
 import '../css/landing.css'
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import ConstructionIcon from '@mui/icons-material/Construction';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { useUser } from '../Context/User.context';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -48,9 +46,12 @@ const Header = () => {
 		};
 	}, [showDropdown]);
 
+
 	useLayoutEffect(() => {
-		const forbiddenLocations = ["/resetPassword", "/"]
-		if (forbiddenLocations.includes(location.pathname)) {
+		const forbiddenLocations = ["resetPassword", "newPassword"]
+		const newLocation = location.pathname.replace(/\/+/g, "")
+		const condition = forbiddenLocations.some(f => (newLocation !== "" && newLocation.includes(f)) || location.pathname === "/")
+		if (condition) {
 			setHeaderView(false)
 		}
 		else if (!headerView) {
@@ -73,17 +74,6 @@ const Header = () => {
 						<div className="ml-auto">
 							<ul className="list-unstyled">
 								<li className="dropdown pc-h-item">
-									<button
-										className="p-2 dropdown-toggle arrow-none mr-0"
-										onClick={() => {
-											navigate('/edit_profile');
-										}}
-										title='Dirigirse a la sesion para actualizar informacion del usuario logueado en el sistema.'
-									>
-										<i className="material-icons-two-tone">
-											<ConstructionIcon />
-										</i>
-									</button>
 									<button
 										className="p-2 dropdown-toggle arrow-none mr-0"
 										onClick={() => {
@@ -110,19 +100,6 @@ const Header = () => {
 									</button>
 									{showDropdown && (
 										<ul className="dropdown-menu dropdown-menu-right pc-h-dropdown flex-column">
-											<li className="dropdown-item">
-												<button
-													onClick={() => {
-														navigate('/instructions');
-													}}
-													title='Manuales de ayuda para cada modulo disponible del sistema.'
-												>
-													<i className="material-icons-two-tone">
-														<AutoStoriesIcon />
-													</i>
-													<span>Manuales</span>
-												</button>
-											</li>
 											<li className="dropdown-item">
 												<button
 													onClick={() => {

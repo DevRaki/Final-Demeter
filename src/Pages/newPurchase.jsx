@@ -15,15 +15,14 @@ import useLocaStorage from '../hooks/useLocaStorage';
 
 
 function NewPurchase() {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
   const { createMultipleShopping } = useShoppingContext()
   const [error, setError] = useState("")
   const [selectedSupplies, setSelectedSupplies, destroy] = useLocaStorage("suppliesTable", [])
   const [shoppingBillState, setShoppingBillState] = useState({
     total: 0
   })
-  const [selectedMeasure, setSelectedMeasure] = useState(null);
-
+  const [refreshPage, setRefreshPage] = useState(false);
 
   const [availableSupplies, setAvailableSupplies] = useState([]);
 
@@ -72,13 +71,16 @@ function NewPurchase() {
       Invoice_Number: uuidv4
     }))
 
-    console.log("data", data)
-    console.log("uuidv4", uuidv4)
-
     await createMultipleShopping(data)
     destroy()
 
   }
+
+  const onClose = () => {
+    console.log("Close")
+    destroy()
+  }
+
   const [suppliesState, setSuppliesState] = useState([{
     ID_Supplies: "",
     Name_Supplies: "",
@@ -150,9 +152,6 @@ function NewPurchase() {
   const onSelectSupplie = (option) => {
     // console.log(target.querySelector("selected").value)
     supplierRef.current = option.value
-    const selectedSupplie = suppliesState.find((supply) => supply.ID_Supplies === option.value);
-    setSelectedMeasure(selectedSupplie.Measure);
-
   }
 
   const onDeleteSupplie = (id) => {
@@ -187,6 +186,27 @@ function NewPurchase() {
     // setAvailableSupplies(prev => [...prev, data])
     window.location.reload()
   }
+
+  const inputValidation = (type, text) => {
+    let parsedValue = text.replace(/\w+/g, "")
+    let newValue = ""
+
+    for (let i = 0; i <= parsedValue.length; i++) {
+
+      if (i % 3 === 0) {
+        newValue += "."
+      }
+
+      newValue += parsedValue[i]
+    }
+
+    setValue(type, newValue)
+  }
+
+  const floatValidation = (text, type) => {
+    const newValue = text.replace(/[^0-9.]+/g, '')
+    setValue(type, newValue)
+  }
   return (
 
     <div className='position-shop'>
@@ -219,49 +239,7 @@ function NewPurchase() {
                   <div className=''>
                     <label>
                       Cantidad:
-                      <input className="custom-input" type="text" {...register("Lot",{
-                         required: 'Este campo es obligatorio',
-                         validate: {
-                           isDouble: (value) => {
-                             const parsedValue = parseFloat(value);
-                             if (isNaN(parsedValue)) {
-                               return 'Debe ser un número positivo.';
-                             }
-                           },
-                           validRange: (value) => {
-                             const parsedValue = parseFloat(value);
-                             if (parsedValue < 0 || parsedValue > 99999999) {
-                               return 'La cantidad debe estar entre 0 y 99999999.';
-                             }
-                           },
-                         },
-                      })}
-                      />
-
-
-                      {/* <input
-                        {...register('Unit', {
-                          required: 'Este campo es obligatorio',
-                          validate: {
-                            isDouble: (value) => {
-                              const parsedValue = parseFloat(value);
-                              if (isNaN(parsedValue)) {
-                                return 'Debe ser un número positivo.';
-                              }
-                            },
-                            validRange: (value) => {
-                              const parsedValue = parseFloat(value);
-                              if (parsedValue < 0 || parsedValue > 99999999) {
-                                return 'La cantidad debe estar entre 0 y 99999999.';
-                              }
-                            },
-                          },
-                        })}
-                        type="text"
-                        className="form-control"
-                      /> */}
-
-
+                      <input className="custom-input" type="number" {...register("Lot")} onInput={e => floatValidation(e.target.value, "Lot")} />
                     </label>
                   </div>
                   <div className='ml-2'>
@@ -272,20 +250,23 @@ function NewPurchase() {
                 <div className="flex mb-3">
 
                   <div className="mr-5 ml-5">
-                    <label htmlFor="Measure" className="form-label">
-                      Medida
+                    <label>
+                      Medida:
+                      <select className="select-measure  rounded-md p-1 mr-5 ml-3" {...register("Measure")}>
+                        <option value="unidad(es)">Unidad(es)</option>
+                        <option value="kg">Kilogramo(kg)</option>
+                        <option value="g">gramos(g)</option>
+                        <option value="L">Litros(L)</option>
+                        <option value="ml">Mililitros(ml)</option>
+
+                      </select>
                     </label>
-                    <input
-                      value={selectedMeasure || ''}
-                      readOnly
-                      className="select-measure  rounded-md p-1 mr-5 ml-3"
-                    />
                   </div>
 
                   <div>
                     <label className='ml-4'>
                       Precio:
-                      <input className=" custom-input  " type="number" {...register("Price_Supplier")} />
+                      <input className=" custom-input  " type="number" {...register("Price_Supplier")} onInput={e => floatValidation(e.target.value, "Price_Supplier")} />
                     </label>
                   </div>
                   <div className='flex flex-column ml-3  '>
@@ -310,6 +291,7 @@ function NewPurchase() {
                   <tr>
                     <th>Insumo</th>
                     <th>Cantidad</th>
+                    <th>Medida</th>
                     <th>Precio</th>
                     <th>Acciones</th>
                   </tr>
@@ -320,6 +302,7 @@ function NewPurchase() {
                       <tr key={ID_Supplies}>
                         <td>{supplieName}</td>
                         <td>{Lot}</td>
+                        <td>{Measure}</td>
                         <td>{Price_Supplier}</td>
                         <td>
                           <button type="button" className="btn btn-icon btn-danger" onClick={() => onDeleteSupplie(ID_Supplies)}>
@@ -346,7 +329,7 @@ function NewPurchase() {
         </div>
         <div className='position-facture ml-5 '>
 
-          <ShoppingBill {...shoppingBillState} onConfirm={onConfirm} />
+          <ShoppingBill {...shoppingBillState} onConfirm={onConfirm} onClose={onClose} />
         </div>
       </div>
     </div>

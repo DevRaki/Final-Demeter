@@ -19,42 +19,53 @@ const style = {
     pb: 3
 };
 
+const customStyles = {
+    control: (provided, state) => ({
+        ...provided,
+        border: state.isFocused ? '1px solid #201E1E' : '1px solid #201E1E',
+        '&:hover': {
+            border: '1px solid #201E1E',
+        },
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isSelected ? '#e36209' : state.isFocused ? '#e36209' : 'white',
+        color: state.isSelected ? 'white' : state.isFocused ? '#555' : '#201E1E',
+        '&:hover': {
+            backgroundColor: '#e36209',
+            color: 'white',
+        },
+        cursor: state.isDisabled ? 'not-allowed' : 'default',
+    }),
+};
+
 function CreateProducts({ onClose, onCreated }) {
 
-    const { control, register, handleSubmit, formState: { errors, isValid }, setError } = useForm();
+    const { control, register, handleSubmit, formState: { errors }, setError } = useForm();
     const { createProduct, product } = useProduct();
     const { Category_products } = useCategoryProducts();
     const [selectedCategory, setSelectedCategory] = useState(null);
 
-    const handleCategoryChange = (selectedOption) => {
-        setSelectedCategory(selectedOption);
-
-    };
-
-    const customStyles = {
-        control: (provided, state) => ({
-            ...provided,
-            border: state.isFocused ? '1px solid #201E1E' : '1px solid #201E1E',
-            '&:hover': {
-                border: '1px solid #201E1E',
-            },
-        }),
-        option: (provided, state) => ({
-            ...provided,
-            backgroundColor: state.isSelected ? '#e36209' : state.isFocused ? '#e36209' : 'white',
-            color: state.isSelected ? 'white' : state.isFocused ? '#555' : '#201E1E',
-            '&:hover': {
-                backgroundColor: '#e36209',
-                color: 'white',
-            },
-            cursor: state.isDisabled ? 'not-allowed' : 'default',
-        }),
-    };
+    function removeAccentsAndSpaces(str) {
+        return str
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f\s]/g, '');
+    }
 
     const onSubmit = handleSubmit(async (values) => {
-        const idNameProductDuplicate = product.some(products => products.Name_Products === values.Name_Products);
+        const normalizedInputName = removeAccentsAndSpaces(
+            values.Name_Role
+        );
+        const normalizedExistingNames = product.map((produc) =>
+            removeAccentsAndSpaces(produc.Name_Products)
+        );
 
-        if (idNameProductDuplicate) {
+        const isNameDuplicate = normalizedExistingNames.includes(
+            normalizedInputName
+        );
+
+        if (isNameDuplicate) {
             setError('Name_Products', {
                 type: 'manual',
                 message: 'El nombre del producto ya existe.'
@@ -73,7 +84,6 @@ function CreateProducts({ onClose, onCreated }) {
         values.ProductCategory_ID = selectedCategory.value;
 
         createProduct(values)
-
         onCreated();
         onClose();
     });
@@ -107,13 +117,29 @@ function CreateProducts({ onClose, onCreated }) {
                                         </label>
                                         <input
                                             {...register("Name_Products", {
-                                                required: "El nombre es obligatorio",
                                                 pattern: {
-                                                    value: /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]*[a-záéíóúñ]$/,
-                                                    message:
-                                                        "El nombre del mesero debe tener la primera letra en mayúscula y solo letras."
-                                                }
+                                                    value: /^[A-Za-zÁÉÍÓÚÑáéíóúñ]+(\s[A-Za-zÁÉÍÓÚÑáéíóúñ]+)?$/,
+                                                    message: 'Solo se permiten letras, tildes y hasta un espacio entre letras.',
+                                                },
+                                                minLength: {
+                                                    value: 3,
+                                                    message: 'El nombre debe tener al menos 3 caracteres.',
+                                                },
+                                                maxLength: {
+                                                    value: 30,
+                                                    message: 'El nombre no puede tener más de 30 caracteres.',
+                                                },
+                                                setValueAs: (value) =>
+                                                    value
+                                                        .trim()
+                                                        .replace(/\s+/g, ' ')
+                                                        .toLowerCase()
+                                                        .replace(/^(.)/, (match) => match.toUpperCase()),
                                             })}
+                                            maxLength={30}
+                                            onInput={(e) => {
+                                                e.target.value = e.target.value.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ\s]/g, '');
+                                            }}
                                             type="text"
                                             placeholder='Nombre del producto'
                                             className="form-control"
@@ -185,6 +211,36 @@ function CreateProducts({ onClose, onCreated }) {
                                         )}
                                     </div>
 
+                                    <div className="form-group col-md-6">
+                                        <label htmlFor="Image" className="form-label">
+                                            Imagen: <strong>*</strong>
+                                        </label>
+                                        <input
+                                            {...register("Image", {
+                                                required: "La imagen es obligatorio",
+                                                validate: (value) => {
+                                                    console.log('Valor del archivo:', value);
+                                                    if (!value[0]) {
+                                                        return 'Por favor, selecciona una imagen.';
+                                                    }
+                                                    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                                                    const file = value[0];
+
+                                                    if (!allowedMimeTypes.includes(file.type)) {
+                                                        return 'Formato de imagen no permitido. Utiliza archivos JPG, JPEG, PNG o GIF.';
+                                                    }
+                                                },
+                                            })}
+                                            type="file"
+                                            placeholder='Imagen del producto'
+                                            className="form-control"
+                                        />
+                                        {errors.Image && (
+                                            <p className="text-red-500">
+                                                {errors.Image.message}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="buttonconfirm">
@@ -196,7 +252,7 @@ function CreateProducts({ onClose, onCreated }) {
                                             Confirmar
                                         </button>
                                         <button
-                                            className="btn btn-primary"
+                                            className="btn btn-danger"
                                             onClick={onCancel}
                                             type="button"
                                         >

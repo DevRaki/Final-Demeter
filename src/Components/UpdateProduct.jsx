@@ -1,32 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import Select from 'react-select';
-import Box from "@mui/material/Box";
 import { useForm, Controller } from 'react-hook-form';
 import { useProduct } from '../Context/Product.context.jsx';
 import { useCategoryProducts } from '../Context/CategoryProducts.context.jsx';
-import { Navigate } from 'react-router-dom';
-
-const style = {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "2px solid #000",
-    boxShadow: 24,
-    pt: 2,
-    px: 4,
-    pb: 3
-};
 
 function UpdateProduct() {
 
-    const { control, register, handleSubmit, formState: { errors, isValid }, setError } = useForm();
-    const { updateProduct, product } = useProduct();
-    const { Category_products } = useCategoryProducts();
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [formData, setFormData] = useState({});
+    const { updateProduct, product, CurrentProd, getProductById } = useProduct();
+    const { control, register, handleSubmit, reset, formState: { errors, isValid }, setError } = useForm();
+    const { getCategory_products_without_state, Category_products } = useCategoryProducts();
+    const [categoryProduct, setCategoryProduct] = useState([])
+    const [selectedCategory, setSelectedCategory] = useState({});
+
+    useEffect(() => {
+        return async () => {
+            const productData = await getProductById(CurrentProd);
+            reset(productData);
+            const categoryProducts = await getCategory_products_without_state(productData.ProductCategory_ID)
+
+            setCategoryProduct(categoryProducts)
+            setSelectedCategory({
+                value: productData.ProductCategory_ID,
+                label: categoryProducts,
+            });
+
+            // const categoryProductStructure = categoryProducts.map(c => ({
+            //     value: c.ID_ProductCategory,
+            //     label: c.Name_ProductCategory
+            // }))
+
+            // console.log("selectedCategory", categoryProductStructure)
+        }
+
+    }, [reset, getProductById, CurrentProd]);
+
+
+    // return <h1>Hi</h1>
 
     const customStyles = {
         control: (provided, state) => ({
@@ -49,43 +58,38 @@ function UpdateProduct() {
     };
 
     const onSubmit = handleSubmit(async (values) => {
-        const idNameProductDuplicate = product.some(products => products.Name_Products === values.Name_Products);
-
-        if (idNameProductDuplicate) {
-            setError('Name_Products', {
-                type: 'manual',
-                message: 'El nombre del producto ya existe.'
-            });
-            return;
-        }
-
-        if (!selectedCategory || selectedCategory.value === '') {
-            setError('ProductCategory_ID', {
-                type: 'manual',
-                message: 'Debe seleccionar una categoria para el producto.'
-            });
-            return;
-        }
-
         values.ProductCategory_ID = selectedCategory.value;
-
-        updateProduct(values)
+        
+        updateProduct(CurrentProd, values);
     });
 
-    const onCancel = () => {
-        setFormData({})
-    };
-
-    const options = Category_products
+    const options = categoryProduct
         .filter(category => category.State)
         .map(category => ({
             value: category.ID_ProductCategory,
             label: category.Name_ProductCategory,
         }));
 
+    const onCancel = async () => {
+        // Obtener los datos originales del producto
+        const originalProductData = await getProductById(CurrentProd);
+
+        // Establecer los valores originales en los campos del formulario
+        setValue("Name_Products", originalProductData.Name_Products);
+        setValue("ProductCategory_ID", {
+            value: originalProductData.ProductCategory_ID,
+            label: originalProductData.ProductCategory_Name, // Ajusta esto según la estructura real de tu categoría
+        });
+        setValue("Price_Product", originalProductData.Price_Product);
+        // Restaurar cualquier otro campo que necesites
+
+        // Otra opción: resetear todo el formulario a sus valores originales
+        reset(originalProductData);
+        navigate('/product');
+    };
+
     return (
         <form onSubmit={onSubmit}>
-
             <div className="control">
                 <div className="form-group col-md-6">
                     <label htmlFor="Name_Products" className="form-label">
@@ -103,6 +107,7 @@ function UpdateProduct() {
                         type="text"
                         placeholder='Nombre del producto'
                         className="form-control"
+                        value={product.Name_Products}
                     />
                     {errors.Name_Products && (
                         <p className="text-red-500">
@@ -122,10 +127,10 @@ function UpdateProduct() {
                         render={({ field }) => (
                             <Select
                                 options={options}
-                                value={selectedCategory}
+                                // value={selectedCategory}
                                 onChange={(selectedOption) => {
                                     setSelectedCategory(selectedOption);
-                                    field.onChange(selectedOption);
+                                    field.onChange(selectedOption.value);
                                 }}
                                 styles={customStyles}
                                 className="form-selects"
@@ -170,7 +175,6 @@ function UpdateProduct() {
                         </p>
                     )}
                 </div>
-
             </div>
 
             <div className="buttonconfirm">
@@ -182,11 +186,10 @@ function UpdateProduct() {
                         Confirmar
                     </button>
                     <button
-                        className="btn btn-primary"
                         onClick={onCancel}
-                        type="button"
+                        className="btn btn-danger mr-5"
                     >
-                        Cancelar
+                        Volver
                     </button>
                 </div>
             </div>
