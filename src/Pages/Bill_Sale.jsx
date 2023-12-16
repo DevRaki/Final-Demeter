@@ -1,103 +1,113 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSaleContext } from '../Context/SaleContext';
 import { useProduct } from '../Context/ProductContext';
 import { IoIosAdd } from 'react-icons/io';
 import { AiOutlineMinus } from 'react-icons/ai';
-import { useUser } from "../Context/User.context.jsx";
+import { useUser } from '../Context/User.context.jsx';
+
 function Bill() {
     const { Create, Sale, getDetailsSale, details, Count, fetchGain, total, newDetails, Sales, setnewDetails, createManyDetails, setNewCost, CancelDet, deleteDetail } = useSaleContext();
     const { getwholeProducts, AllProducts } = useProduct();
+    const { user, getWaiters, toggleUserStatus } = useUser();
     const [newSaleID, setNewSaleID] = useState();
     const [salemss, Setsalemss] = useState();
-    const forceUpdate = useForceUpdate();
-    const { user, getWaiters, toggleUserStatus } = useUser();
     const [waiters, setWaiters] = useState([]);
     const [selectedWaiter, setSelectedWaiter] = useState();
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 5;
+
+    useEffect(() => {
+        getwholeProducts();
+        getWaiters();
+    }, []);
+
+    useEffect(() => {
+        const waiterOptions = user.map((userData) => (
+            <option key={userData.ID_User} value={userData.ID_User}>
+                {userData.Name_User} {userData.LastName_User}
+            </option>
+        ));
+        waiterOptions.unshift(
+            <option key="quickSale" value={null}>
+                Venta rápida
+            </option>
+        );
+
+        setWaiters(waiterOptions);
+    }, [user]);
+
+    useEffect(() => {
+        if (Sales.length > 0) {
+            setNewSaleID(Sales[Sales.length - 1].ID_Sale + 1);
+        } else {
+            setNewSaleID(1);
+        }
+        const subtotal = newDetails.reduce((acc, item) => {
+            const product = AllProducts.find((product) => product.ID_Product === item.Product_ID);
+            return acc + product.Price_Product * item.Lot;
+        }, 0);
+        fetchGain(subtotal);
+    }, [newDetails, AllProducts, Sales]);
 
     const CreateSale = () => {
         if (newDetails.length > 0) {
             Create(selectedWaiter).then(createManyDetails(newDetails));
             Setsalemss("Generado correctamente");
             createManyDetails([]); // Limpiar la lista de detalles después de generar la orden
+            // Redirigir solo si hay elementos en los detalles
+            window.location.href = "/sale";
         } else {
-            Setsalemss("No puedes Generar");
+            Setsalemss("No puedes Generar una venta vacia");
         }
-    }
+    };
     const removeDetail = (index) => {
         const updatedDetails = [...newDetails];
         updatedDetails.splice(index, 1);
         setnewDetails(updatedDetails);
     };
 
-    useEffect(() => {
-        getwholeProducts();
-        getWaiters();
-    }, []);
-    useEffect(() => {
-        // Mapear la lista de usuarios para obtener nombres y crear las opciones del select
-        const waiterOptions = user.map((userData) => (
-            <option key={userData.ID_User} value={userData.ID_User}>
-              {userData.Name_User} {userData.LastName_User}
-            </option>
-        ));
-        waiterOptions.unshift(
-            <option key="quickSale" value={null}>
-              Venta rapida
-            </option>
-          );
-    
-        setWaiters(waiterOptions);
-      }, [user]);
-
-    useEffect(() => {
-        if (Sales.length > 0) {
-            setNewSaleID((Sales[Sales.length - 1].ID_Sale) + 1);
-        } else {
-            setNewSaleID(1);
-        }
-        const subtotal = newDetails.reduce((acc, item) => {
-            const product = AllProducts.find(product => product.ID_Product === item.Product_ID);
-            return acc + (product.Price_Product * item.Lot);
-        }, 0);
-        fetchGain(subtotal);
-    }, [newDetails, AllProducts, Sales]);
-
     const decreaseLot = (index) => {
-        if (newDetails[index].Lot > 1) { 
+        if (newDetails[index].Lot > 1) {
             newDetails[index].Lot -= 1;
             forceUpdate();
             updateTotal();
         }
-    }
-    
+    };
 
     const increaseLot = (index) => {
         newDetails[index].Lot += 1;
         forceUpdate();
         updateTotal();
-    }
+    };
 
     const updateTotal = () => {
         const newTotal = newDetails.reduce((acc, item) => {
-            const product = AllProducts.find(product => product.ID_Product === item.Product_ID);
-            return acc + (product.Price_Product * item.Lot);
+            const product = AllProducts.find((product) => product.ID_Product === item.Product_ID);
+            return acc + product.Price_Product * item.Lot;
         }, 0);
         fetchGain(newTotal);
-    }
+    };
+
     const handleWaiterChange = (event) => {
         const selectedWaiterValue = event.target.value;
         setSelectedWaiter(selectedWaiterValue);
-        console.log(selectedWaiter)
-        
-      };
+        console.log(selectedWaiter);
+    };
+
+    const forceUpdate = useForceUpdate();
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
 
     return (
         <div className="relative text-center h-full w-full flex flex-col mt-[3vh] items-center">
             <form className="mt-4">
                 <h2 className="text-xl font-bold mb-2">Orden {newSaleID}</h2>
                 <div className="mb-4">
-                    <label htmlFor="date" className="block text-gray-600">Fecha:</label>
+                    <label htmlFor="date" className="block text-gray-600">
+                        Fecha:
+                    </label>
                     <input
                         type="date"
                         id="date"
@@ -107,7 +117,9 @@ function Bill() {
                     />
                 </div>
                 <div className="mb-4">
-                    <label htmlFor="waiter" className="block text-gray-600">Mesero:</label>
+                    <label htmlFor="waiter" className="block text-gray-600">
+                        Mesero:
+                    </label>
                     <select
                         id="waiter"
                         name="waiter"
@@ -115,7 +127,7 @@ function Bill() {
                         value={selectedWaiter}
                         onChange={handleWaiterChange}
                     >
-                       {waiters}
+                        {waiters}
                     </select>
                 </div>
                 <div className="w-full overflow-x-auto">
@@ -128,10 +140,10 @@ function Bill() {
                             </tr>
                         </thead>
                         <tbody>
-                            {newDetails.map((item, index) => (
+                            {newDetails.slice(startIndex, endIndex).map((item, index) => (
                                 <tr key={index}>
                                     <td className="p-1">
-                                        + {AllProducts.find(product => product.ID_Product === item.Product_ID).Name_Products}
+                                        + {AllProducts.find((product) => product.ID_Product === item.Product_ID).Name_Products}
                                     </td>
                                     <td className="flex flex-row items-center p-1 ml-[1vh]">
                                         <div className="lot-button cursor-pointer" onClick={() => decreaseLot(index)}>
@@ -144,7 +156,7 @@ function Bill() {
                                     </td>
                                     <td className="p-1 cursor-pointer" onClick={() => removeDetail(index)}>
                                         X
-                                </td>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -152,30 +164,39 @@ function Bill() {
                 </div>
 
                 <div className="mb-4">
-                    <p>SubTotal: {total} Total: {total}</p>
+                    <p>
+                        SubTotal: {total} Total: {total}
+                    </p>
                 </div>
             </form>
 
-            <div className="buttons flex-row space-x-[3vh]">
-                <Link to='/sale'>
+            {/* Pagination controls */}
+            <div className="pagination mt-4">
+                {Array.from({ length: Math.ceil(newDetails.length / ITEMS_PER_PAGE) }, (_, index) => (
                     <button
-                        className="bg-orange-500 text-white py-2 px-4 rounded"
-                        onClick={CreateSale}
+                        key={index + 1}
+                        className={`mx-1 px-3 py-1 rounded ${
+                            currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'
+                        }`}
+                        onClick={() => setCurrentPage(index + 1)}
                     >
+                        {index + 1}
+                    </button>
+                ))}
+            </div>
+
+            <div className="buttons flex-row space-x-[3vh]">
+                
+                    <button className="bg-orange-500 text-white py-2 px-4 rounded" onClick={CreateSale}>
                         Generar orden
                     </button>
-                </Link>
+                
 
-                <Link to='/sale'>
-                    <button
-                        className="bg-red-500 text-white py-2 px-4 rounded"
-                    >
-                        Cancelar Venta
-                    </button>
+                <Link to="/sale">
+                    <button className="bg-red-500 text-white py-2 px-4 rounded">Cancelar Venta</button>
                 </Link>
             </div>
             <div>{salemss}</div>
-
         </div>
     );
 }

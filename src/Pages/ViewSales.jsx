@@ -77,19 +77,26 @@ function ViewSales() {
   };
 
   const getUserById = (userId) => {
-    return user.find((user) => user.ID_User === userId);
+    const foundUser = Object.values(user).find((u) => u.ID_User === userId);
+    return foundUser || {};
   };
 
   const handleCheckboxChange = () => {
     setFilterByState(!filterByState);
   };
 
-  const displaySales = Sales.filter((sale) => {
-    const userMatch = (sale.User_ID ?? '').toString().includes(searchTerm);
-    const stateMatch = !filterByState || (filterByState && sale.StatePay);
-  
-    return userMatch && stateMatch;
-  }).slice(pagesVisited, pagesVisited + salesPerPage);
+  const isSaleEditable = (sale) => sale.StatePay;
+
+  const displaySales = Sales
+    .slice(0) // Create a shallow copy of the array
+    .reverse() // Reverse the copied array
+    .slice(pagesVisited, pagesVisited + salesPerPage) // Apply pagination to the reversed array
+    .filter((sale) => {
+      const userMatch = (sale.User_ID ?? '').toString().includes(searchTerm);
+      const stateMatch = !filterByState || (filterByState && sale.StatePay);
+
+      return userMatch && stateMatch;
+    });
 
   return (
     <div>
@@ -182,11 +189,14 @@ function ViewSales() {
                                 <Link to="/sales">
                                   <button
                                     type="button"
-                                    className="btn btn-icon btn-primary"
+                                    className={`btn btn-icon btn-primary ${
+                                      isSaleEditable(sale) ? '' : 'disabled'
+                                    }`}
                                     onClick={() => {
                                       getOne(sale.ID_Sale);
                                       selectAction(2);
                                     }}
+                                    disabled={!isSaleEditable(sale)}
                                   >
                                     <i>
                                       <BiEdit></BiEdit>
@@ -197,7 +207,9 @@ function ViewSales() {
                                   type="button"
                                   className="btn btn-icon btn-secondary"
                                   onClick={() => {
-                                    getOne(sale.ID_Sale).then(openHelloModal());
+                                    getOne(sale.ID_Sale).then(
+                                      openHelloModal()
+                                    );
                                   }}
                                 >
                                   <i>
@@ -233,7 +245,9 @@ function ViewSales() {
                       previousLinkClassName={'text-gray-600 rounded-full p-2'}
                       nextLinkClassName={'text-gray-600 rounded-full p-2'}
                       disabledClassName={'text-gray-300 cursor-not-allowed'}
-                      activeClassName={'bg-red-500 text-white rounded-full pl-2 pr-2'}
+                      activeClassName={
+                        'bg-red-500 text-white rounded-full pl-2 pr-2'
+                      }
                     />
                   </div>
                 </div>
