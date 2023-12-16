@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSaleContext } from '../Context/SaleContext';
 import { useProduct } from '../Context/ProductContext';
 import { IoIosAdd } from 'react-icons/io';
@@ -7,15 +7,16 @@ import { AiOutlineMinus } from 'react-icons/ai';
 import { useUser } from '../Context/User.context.jsx';
 
 function Bill() {
-    const { Create, Sale, getDetailsSale, details, Count, fetchGain, total, newDetails, Sales, setnewDetails, createManyDetails, setNewCost, CancelDet, deleteDetail } = useSaleContext();
+    const { Create, fetchGain, total, newDetails, Sales, setnewDetails, createManyDetails } = useSaleContext();
     const { getwholeProducts, AllProducts } = useProduct();
-    const { user, getWaiters, toggleUserStatus } = useUser();
+    const { user, getWaiters } = useUser();
     const [newSaleID, setNewSaleID] = useState();
     const [salemss, Setsalemss] = useState();
     const [waiters, setWaiters] = useState([]);
     const [selectedWaiter, setSelectedWaiter] = useState();
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 5;
+    const navigate = useNavigate();
 
     useEffect(() => {
         getwholeProducts();
@@ -55,12 +56,13 @@ function Bill() {
             Create(selectedWaiter).then(createManyDetails(newDetails));
             Setsalemss("Generado correctamente");
             createManyDetails([]); // Limpiar la lista de detalles después de generar la orden
-            // Redirigir solo si hay elementos en los detalles
-            window.location.href = "/sale";
+            // Redirigir a /sale usando navigate sin recarga de página
+            navigate("/sale");
         } else {
-            Setsalemss("No puedes Generar una venta vacia");
+            Setsalemss("No puedes Generar una venta vacía");
         }
     };
+
     const removeDetail = (index) => {
         const updatedDetails = [...newDetails];
         updatedDetails.splice(index, 1);
@@ -92,7 +94,6 @@ function Bill() {
     const handleWaiterChange = (event) => {
         const selectedWaiterValue = event.target.value;
         setSelectedWaiter(selectedWaiterValue);
-        console.log(selectedWaiter);
     };
 
     const forceUpdate = useForceUpdate();
@@ -170,31 +171,24 @@ function Bill() {
                 </div>
             </form>
 
-            {/* Pagination controls */}
-            <div className="pagination mt-4">
-                {Array.from({ length: Math.ceil(newDetails.length / ITEMS_PER_PAGE) }, (_, index) => (
-                    <button
-                        key={index + 1}
-                        className={`mx-1 px-3 py-1 rounded ${
-                            currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'
-                        }`}
-                        onClick={() => setCurrentPage(index + 1)}
-                    >
-                        {index + 1}
-                    </button>
-                ))}
-            </div>
-
+            {/* Botones */}
             <div className="buttons flex-row space-x-[3vh]">
-                
-                    <button className="bg-orange-500 text-white py-2 px-4 rounded" onClick={CreateSale}>
-                        Generar orden
-                    </button>
-                
+                <button
+                    className={`py-2 px-4 rounded ${
+                        newDetails.length === 0 ? 'bg-gray-500 text-white cursor-not-allowed' : 'bg-orange-500 text-white'
+                    }`}
+                    onClick={CreateSale}
+                    disabled={newDetails.length === 0} // Desactiva el botón si newDetails está vacío
+                >
+                    Generar orden
+                </button>
 
-                <Link to="/sale">
-                    <button className="bg-red-500 text-white py-2 px-4 rounded">Cancelar Venta</button>
-                </Link>
+                <button
+                    className="bg-red-500 text-white py-2 px-4 rounded"
+                    onClick={() => navigate("/sale")}
+                >
+                    Cancelar Venta
+                </button>
             </div>
             <div>{salemss}</div>
         </div>
