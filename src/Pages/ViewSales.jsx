@@ -85,18 +85,14 @@ function ViewSales() {
     setFilterByState(!filterByState);
   };
 
+  const displaySales = Sales.slice(pagesVisited, pagesVisited + salesPerPage).filter((sale) => {
+    const userMatch = (sale.User_ID ?? '').toString().includes(searchTerm);
+    const stateMatch = !filterByState || (filterByState && sale.StatePay);
+
+    return userMatch && stateMatch;
+  });
+
   const isSaleEditable = (sale) => sale.StatePay;
-
-  const displaySales = Sales
-    .slice(0) // Create a shallow copy of the array
-    .reverse() // Reverse the copied array
-    .slice(pagesVisited, pagesVisited + salesPerPage) // Apply pagination to the reversed array
-    .filter((sale) => {
-      const userMatch = (sale.User_ID ?? '').toString().includes(searchTerm);
-      const stateMatch = !filterByState || (filterByState && sale.StatePay);
-
-      return userMatch && stateMatch;
-    });
 
   return (
     <div>
@@ -171,7 +167,7 @@ function ViewSales() {
                           </tr>
                         </thead>
                         <tbody>
-                          {displaySales.map((sale, index) => (
+                          {displaySales.reverse().map((sale, index) => (
                             <tr key={index}>
                               <td>{sale.ID_Sale}</td>
                               <td>
@@ -186,30 +182,37 @@ function ViewSales() {
                                   : 'Venta Rapida'}
                               </td>
                               <td className="flex flex-row justify-center space-x-[2vh]">
-                                <Link to="/sales">
+                                {isSaleEditable(sale) ? (
+                                  <Link to="/sales">
+                                    <button
+                                      type="button"
+                                      className="btn btn-icon btn-primary"
+                                      onClick={() => {
+                                        getOne(sale.ID_Sale);
+                                        selectAction(2);
+                                      }}
+                                    >
+                                      <i>
+                                        <BiEdit></BiEdit>
+                                      </i>
+                                    </button>
+                                  </Link>
+                                ) : (
                                   <button
                                     type="button"
-                                    className={`btn btn-icon btn-primary ${
-                                      isSaleEditable(sale) ? '' : 'disabled'
-                                    }`}
-                                    onClick={() => {
-                                      getOne(sale.ID_Sale);
-                                      selectAction(2);
-                                    }}
-                                    disabled={!isSaleEditable(sale)}
+                                    className="btn btn-icon btn-primary"
+                                    disabled
                                   >
                                     <i>
                                       <BiEdit></BiEdit>
                                     </i>
                                   </button>
-                                </Link>
+                                )}
                                 <button
                                   type="button"
                                   className="btn btn-icon btn-secondary"
                                   onClick={() => {
-                                    getOne(sale.ID_Sale).then(
-                                      openHelloModal()
-                                    );
+                                    getOne(sale.ID_Sale).then(openHelloModal());
                                   }}
                                 >
                                   <i>
@@ -274,10 +277,7 @@ function ViewSales() {
       )}
       <PaymentMethodModal
         isOpen={isModalOpen}
-        onRequestClose={() => {
-          closeModal();
-          fetchSales();
-        }}
+        onRequestClose={() => closeModal()}
         id={idSale}
       />
     </div>
