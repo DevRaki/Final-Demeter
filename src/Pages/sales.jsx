@@ -158,6 +158,7 @@ function Sales() {
           </div>
         </div>
       </div>
+      
     </div>
   );
 }
