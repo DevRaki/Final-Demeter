@@ -74,7 +74,6 @@ export const SaleProvider = ({ children }) => {
     const CancelDet = async () => {
         try {
             setnewDetails([])
-            console.log(newDetails)
         } catch (error) {
             console.log(error)
         }
@@ -127,7 +126,6 @@ export const SaleProvider = ({ children }) => {
     const deleteDetail = async(data) =>{
         try {
            const res =await deleteDetailSale(data);
-           console.log(res.data)
         } catch (error) {
             console.log(error)
         }
