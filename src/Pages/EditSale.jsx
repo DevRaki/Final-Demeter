@@ -22,13 +22,19 @@ function Edit_Bill() {
                 ID_Sale: Sale.ID_Sale,
                 Total: total,
                 SubTotal: total
-            })
-            fetchGain(0)
-            Setsalemss("Generado correctamente")
+            });
+            fetchGain(0);
+            Setsalemss("Generado correctamente");
+
+            // Agregar un retraso de 2 segundos antes de actualizar la orden
+            setTimeout(() => {
+                // Actualizar la orden después del retraso
+                // Puedes poner aquí cualquier lógica adicional que desees ejecutar después del retraso
+            }, 2000);
         } else {
-            Setsalemss("No puedes Generar")
+            Setsalemss("No puedes Generar");
         }
-    }
+    };
 
     useEffect(() => {
         getDetailsSale(Sale.ID_Sale);
