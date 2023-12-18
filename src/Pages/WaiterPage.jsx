@@ -24,7 +24,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
 function WaiterPage() {
-    const { user, getWaiters, toggleUserStatus } = useUser();
+    const { user, getWaiters, toggleUserStatus, getWaiters2 } = useUser();
     const [searchTerm, setSearchTerm] = useState('');
     const [allWaiter, setAllWaiter] = useState([])
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +43,7 @@ function WaiterPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const users = await getWaiters();
+                const users = await getWaiters2();
                 setAllWaiter(users);
             } catch (error) {
                 console.error(error);

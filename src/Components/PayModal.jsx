@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactModal from 'react-modal'; 
 import './PayModal.css'; 
 import { useSaleContext } from '../Context/SaleContext';
@@ -7,10 +7,20 @@ import axios from 'axios';
 ReactModal.setAppElement('#root'); 
 
 function PaymentMethodModal({ isOpen, onRequestClose, onSelectPaymentMethod, id }) {
-  const { paySale } = useSaleContext();
+  const { paySale, fetchSales } = useSaleContext();
+  const [closing, setClosing] = useState(false);
 
-  const handlePayment = (paymentMethod) => {
-    paySale(id, paymentMethod);
+  const handlePayment = async (paymentMethod) => {
+    
+    paySale(id, paymentMethod).then(fetchSales());
+
+    
+    setClosing(true);
+
+    // Esperar 1 segundo antes de cerrar el modal
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Cerrar el modal
     onRequestClose();
   };
 
@@ -27,6 +37,12 @@ function PaymentMethodModal({ isOpen, onRequestClose, onSelectPaymentMethod, id 
         <button onClick={() => handlePayment("Tarjeta")}>Tarjeta</button>
         <button onClick={() => handlePayment("Efectivo")}>Efectivo</button>
       </div>
+      
+      {closing && (
+        <div className="closing-message">
+          Realizando operaciones, por favor espere...
+        </div>
+      )}
     </ReactModal>
   );
 }

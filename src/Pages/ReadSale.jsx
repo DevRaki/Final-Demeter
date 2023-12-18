@@ -11,7 +11,7 @@ function ReadSale() {
     const { getwholeProducts, AllProducts } = useProduct();
     const { user, toggleUserStatus } = useUser();
     const [pageNumber, setPageNumber] = useState(0);
-    const salesPerPage = 10;
+    const salesPerPage = 6;
 
     useEffect(() => {
         getwholeProducts().then(console.log(AllProducts));

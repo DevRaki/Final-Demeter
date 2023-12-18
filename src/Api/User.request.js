@@ -17,6 +17,7 @@ export const updatePasswordLoginRequest = (ID_User, user) => axios.put(`/change_
 // --------------------------- Mesero --------------------------- //
 
 export const getWaitersRequest = () => axios.get(`waiter`);
+export const getWaitersRequest2 = () => axios.get(`waiter2`);
 export const getWaiterRequest = (ID_User) => axios.get(`/waiter/${ID_User}`);
 export const createWaiterRequest = (waiter) => axios.post(`/add_waiter`, waiter);
 export const updateWaiterRequest = (ID_User, waiter) => axios.put(`/waiter/${ID_User}`, waiter);

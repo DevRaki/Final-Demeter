@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getUsersRequest, GetCurrentUser, getUserRequest, createUserRequest, statusUserRequest, updateUserRequest, deleteUserRequest, loginRequest, verifyTokenRequest, forgotPasswordRequest, NewPasswordRequest, GetUserCookies, existUserByEmailOrIdRequest, getWaiterRequest } from '../Api/User.request.js'
 import { getWaitersRequest, createWaiterRequest, updateWaiterRequest } from '../Api/User.request.js';
-import { updateUserLoginRequest, updatePasswordLoginRequest } from '../Api/User.request.js';
+import { updateUserLoginRequest, updatePasswordLoginRequest, getWaitersRequest2 } from '../Api/User.request.js';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 
@@ -292,6 +292,17 @@ export const User = ({ children }) => {
     }
     return []
   }
+  const getWaiters2 = async () => {
+    try {
+      const res = await getWaitersRequest2();
+      setUser(res.data)
+
+      return res.data
+    } catch (error) {
+      console.log(error)
+    }
+    return []
+  }
 
   const getWaiter = async (id) => {
     try {
@@ -353,6 +364,7 @@ export const User = ({ children }) => {
         deleteUser,
         // ---------- Mesero ---------- //
         getWaiters,
+        getWaiters2,
         getWaiter,
         createWaiter,
         updateWaiter,

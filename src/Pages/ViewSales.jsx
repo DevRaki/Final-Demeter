@@ -29,21 +29,43 @@ function ViewSales() {
   const salesPerPage = 6;
   const pagesVisited = pageNumber * salesPerPage;
   const { getDetailProduct2, getwholeProducts, AllProducts } = useProduct();
-  const { user, getWaiters, toggleUserStatus } = useUser();
+  const { user, getWaiters2, toggleUserStatus } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [helloModalOpen, setHelloModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const handlePageClick = ({ selected }) => {
-    setPageNumber(selected);
+  const openModal = () => {
+    setIsModalOpen(true);
   };
 
-  const [productIdsList, setProductIdsList] = useState([]);
-  const pageCount = Math.ceil(Sales.length / salesPerPage);
-  let isCleared = false;
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const openHelloModal = () => {
+    setHelloModalOpen(true);
+  };
+
+  const closeHelloModal = () => {
+    setHelloModalOpen(false);
+  };
+
+  const openPaymentModal = (saleId) => {
+    setIsPaymentModalOpen(true);
+    setID(saleId);
+  };
+
+  const closePaymentModal = () => {
+    setIsPaymentModalOpen(false);
+    // Actualizar la lista de ventas después de cerrar el modal de pago
+    fetchSales();
+  };
 
   useEffect(() => {
     fetchSales();
-    getWaiters();
-    getwholeProducts().then(console.log(AllProducts));
+    getWaiters2();
+    getwholeProducts();
 
     newDetails.forEach((detail, index) => {
       getDetailProduct2(detail.Product_ID);
@@ -56,24 +78,12 @@ function ViewSales() {
     });
   }, []);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [productIdsList, setProductIdsList] = useState([]);
+  const pageCount = Math.ceil(Sales.length / salesPerPage);
+  let isCleared = false;
 
-  const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-
-  const [helloModalOpen, setHelloModalOpen] = useState(false);
-
-  const openHelloModal = () => {
-    setHelloModalOpen(true);
-  };
-
-  const closeHelloModal = () => {
-    setHelloModalOpen(false);
+  const handlePageClick = ({ selected }) => {
+    setPageNumber(selected);
   };
 
   const getUserById = (userId) => {
@@ -86,16 +96,16 @@ function ViewSales() {
   };
 
   const displaySales = Sales
-  .slice(0) // Create a shallow copy of the array
-  .reverse() // Reverse the copied array
-  .slice(pagesVisited, pagesVisited + salesPerPage) // Apply pagination to the reversed array
-  .filter((sale) => {
-    const userMatch = (sale.User_ID ?? '').toString().includes(searchTerm);
-    const stateMatch = !filterByState || (filterByState && sale.StatePay);
+    .slice(0) // Create a shallow copy of the array
+    .reverse() // Reverse the copied array
+    .slice(pagesVisited, pagesVisited + salesPerPage) // Apply pagination to the reversed array
+    .filter((sale) => {
+      const userName = getUserById(sale.User_ID)?.Name_User || 'Venta Rapida';
+      const userMatch = userName.toLowerCase().includes(searchTerm.toLowerCase());
+      const stateMatch = !filterByState || (filterByState && sale.StatePay);
 
-    return userMatch && stateMatch;
-  });
-
+      return userMatch && stateMatch;
+    });
   const isSaleEditable = (sale) => sale.StatePay;
 
   return (
@@ -225,10 +235,7 @@ function ViewSales() {
                                 <button
                                   type="button"
                                   className="btn btn-icon btn-success"
-                                  onClick={() => {
-                                    openModal();
-                                    setID(sale.ID_Sale);
-                                  }}
+                                  onClick={() => openPaymentModal(sale.ID_Sale)}
                                   disabled={!sale.StatePay}
                                 >
                                   <i>
@@ -280,8 +287,8 @@ function ViewSales() {
         </div>
       )}
       <PaymentMethodModal
-        isOpen={isModalOpen}
-        onRequestClose={() => closeModal()}
+        isOpen={isPaymentModalOpen}
+        onRequestClose={() => closePaymentModal()}
         id={idSale}
       />
     </div>
