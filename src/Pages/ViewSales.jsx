@@ -11,6 +11,10 @@ import PaymentMethodModal from '../Components/PayModal.jsx';
 import ReadSale from './ReadSale';
 import { useUser } from '../Context/User.context.jsx';
 
+function formatNumberWithCommas(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function ViewSales() {
   const {
     fetchSales,
@@ -67,6 +71,12 @@ function ViewSales() {
     getWaiters2();
     getwholeProducts();
 
+    // Verificar si ya se ejecutó clearDet
+    clearDet();
+  }, []);
+
+  useEffect(() => {
+    fetchSales();
   }, []);
 
   const [productIdsList, setProductIdsList] = useState([]);
@@ -87,9 +97,9 @@ function ViewSales() {
   };
 
   const displaySales = Sales
-    .slice(0) // Create a shallow copy of the array
-    .reverse() // Reverse the copied array
-    .slice(pagesVisited, pagesVisited + salesPerPage) // Apply pagination to the reversed array
+    .slice(0)
+    .reverse()
+    .slice(pagesVisited, pagesVisited + salesPerPage)
     .filter((sale) => {
       const userName = getUserById(sale.User_ID)?.Name_User || 'Venta Rapida';
       const userMatch = userName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -97,6 +107,7 @@ function ViewSales() {
 
       return userMatch && stateMatch;
     });
+
   const isSaleEditable = (sale) => sale.StatePay;
 
   return (
@@ -173,12 +184,10 @@ function ViewSales() {
                         <tbody>
                           {displaySales.map((sale, index) => (
                             <tr key={index}>
-                              <td>{sale.ID_Sale}</td>
-                              <td>
-                                {sale.StatePay ? 'Pendiente' : 'Pagado'}
-                              </td>
-                              <td>{sale.Total}</td>
-                              <td>{sale.Total}</td>
+                              <td>{formatNumberWithCommas(sale.ID_Sale)}</td>
+                              <td>{sale.StatePay ? 'Pendiente' : 'Pagado'}</td>
+                              <td>{formatNumberWithCommas(sale.Total)}</td>
+                              <td>{formatNumberWithCommas(sale.SubTotal)}</td>
                               <td>
                                 {sale.User_ID
                                   ? getUserById(sale.User_ID)?.Name_User ||

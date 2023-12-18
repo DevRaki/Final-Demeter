@@ -6,6 +6,10 @@ import { AiOutlineMinus } from 'react-icons/ai';
 import { useUser } from "../Context/User.context.jsx";
 import ReactPaginate from 'react-paginate';
 
+function formatNumberWithCommas(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function ReadSale() {
     const { Create, Sale, getDetailsSale, details, Count, fetchGain, total } = useSaleContext();
     const { getwholeProducts, AllProducts } = useProduct();
@@ -77,7 +81,7 @@ function ReadSale() {
                                     </td>
                                     <td className="flex flex-row items-center justify-center p-1 ml-[1vh]">
                                         <div>
-                                            {item.Lot}
+                                            {formatNumberWithCommas(item.Lot)}
                                         </div>
                                     </td>
                                 </tr>
@@ -86,7 +90,7 @@ function ReadSale() {
                     </table>
                 </div>
                 <div className="mb-4">
-                    <p>SubTotal: {total} Total: {total}</p>
+                    <p>SubTotal: {formatNumberWithCommas(total)} Total: {formatNumberWithCommas(total)}</p>
                 </div>
             </form>
 

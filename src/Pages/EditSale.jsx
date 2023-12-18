@@ -5,10 +5,14 @@ import { useProduct } from '../Context/ProductContext';
 import { IoIosAdd } from 'react-icons/io';
 import { AiOutlineMinus } from 'react-icons/ai';
 
-function Edit_Bill() {
-    const ITEMS_PER_PAGE = 5;
+function formatNumberWithCommas(number) {
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
-    const { Create, Sale, getDetailsSale, details, Count, fetchGain, total, newDetails, Sales, createManyDetails, setNewCost } = useSaleContext();
+function Edit_Bill() {
+    const ITEMS_PER_PAGE = 4;
+
+    const { Create, Sale, getDetailsSale, details, Count, fetchGain, total, newDetails, Sales, createManyDetails, setNewCost, fetchSales } = useSaleContext();
     const { getwholeProducts, AllProducts } = useProduct();
     const [newSaleID, setNewSaleID] = useState();
     const [salemss, Setsalemss] = useState();
@@ -17,19 +21,17 @@ function Edit_Bill() {
 
     const CreateSale = () => {
         if (newDetails.length > 0) {
-            createManyDetails(newDetails);
-            Count({
-                ID_Sale: Sale.ID_Sale,
-                Total: total,
-                SubTotal: total
-            });
-            fetchGain(0);
-            Setsalemss("Generado correctamente");
-
-            // Agregar un retraso de 2 segundos antes de actualizar la orden
+            // Agrega un delay de 2 segundos antes de ejecutar las acciones
             setTimeout(() => {
-                // Actualizar la orden después del retraso
-                // Puedes poner aquí cualquier lógica adicional que desees ejecutar después del retraso
+                createManyDetails(newDetails);
+                Count({
+                    ID_Sale: Sale.ID_Sale,
+                    Total: total,
+                    SubTotal: total
+                });
+                fetchGain(0);
+                
+                Setsalemss("Generado correctamente");
             }, 2000);
         } else {
             Setsalemss("No puedes Generar");
@@ -67,13 +69,13 @@ function Edit_Bill() {
             forceUpdate();
             updateTotal();
         }
-    }
+    };
 
     const increaseLot = (index) => {
         newDetails[index].Lot += 1;
         forceUpdate();
         updateTotal();
-    }
+    };
 
     const updateTotal = () => {
         const newTotal = newDetails.reduce((acc, item) => {
@@ -81,7 +83,7 @@ function Edit_Bill() {
             return acc + (product.Price_Product * item.Lot);
         }, 0);
         fetchGain(newTotal);
-    }
+    };
 
     const startDetailIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endDetailIndex = startDetailIndex + ITEMS_PER_PAGE;
@@ -121,7 +123,7 @@ function Edit_Bill() {
                                         <div className="lot-button cursor-pointer" onClick={() => decreaseLot(index)}>
                                             <AiOutlineMinus />
                                         </div>
-                                        {item.Lot}
+                                        {formatNumberWithCommas(item.Lot)}
                                         <div className="lot-button cursor-pointer" onClick={() => increaseLot(index)}>
                                             <IoIosAdd />
                                         </div>
@@ -137,7 +139,7 @@ function Edit_Bill() {
                                         <div className="lot-button cursor-pointer" onClick={() => decreaseLot(index)}>
                                             <AiOutlineMinus />
                                         </div>
-                                        {item.Lot}
+                                        {formatNumberWithCommas(item.Lot)}
                                         <div className="lot-button cursor-pointer" onClick={() => increaseLot(index)}>
                                             <IoIosAdd />
                                         </div>
@@ -149,7 +151,7 @@ function Edit_Bill() {
                 </div>
 
                 <div className="mb-4">
-                    <p>SubTotal: {(total)} Total: {total}</p>
+                    <p>SubTotal: {formatNumberWithCommas(total)} Total: {formatNumberWithCommas(total)}</p>
                 </div>
             </form>
             <Link to='/sale'>
