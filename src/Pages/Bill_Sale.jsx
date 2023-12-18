@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSaleContext } from '../Context/SaleContext';
 import { useProduct } from '../Context/ProductContext';
@@ -8,7 +8,7 @@ import ReactPaginate from 'react-paginate';
 import { useUser } from '../Context/User.context.jsx';
 
 function formatNumberWithCommas(number) {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function Bill() {
@@ -35,7 +35,7 @@ function Bill() {
   useEffect(() => {
     getwholeProducts();
     getWaiters();
-  }, []);
+  }, [newDetails]);
 
   useEffect(() => {
     const waiterOptions = user.map((userData) => (
@@ -92,19 +92,21 @@ function Bill() {
     const updatedDetails = [...newDetails];
     updatedDetails.splice(index, 1);
     setnewDetails(updatedDetails);
+    forceUpdate(); // Actualiza el componente después de eliminar un detalle
+    updateTotal();
   };
 
   const decreaseLot = (index) => {
     if (newDetails[index].Lot > 1) {
       newDetails[index].Lot -= 1;
-      forceUpdate();
+      forceUpdate(); // Actualiza el componente después de disminuir el lote
       updateTotal();
     }
   };
 
   const increaseLot = (index) => {
     newDetails[index].Lot += 1;
-    forceUpdate();
+    forceUpdate(); // Actualiza el componente después de aumentar el lote
     updateTotal();
   };
 
@@ -114,6 +116,7 @@ function Bill() {
       return acc + product.Price_Product * item.Lot;
     }, 0);
     fetchGain(newTotal);
+    forceUpdate(); // Actualiza el componente después de cambiar el total
   };
 
   const handleWaiterChange = (event) => {
@@ -138,13 +141,9 @@ function Bill() {
           <label htmlFor="date" className="block text-gray-600">
             Fecha:
           </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            className="w-full p-2 border rounded-xl"
-            defaultValue={new Date().toISOString().substr(0, 10)}
-          />
+          <div className="w-full p-2 border rounded-xl">
+            {new Date().toISOString().substr(0, 10)}
+          </div>
         </div>
         <div className="mb-4">
           <label htmlFor="waiter" className="block text-gray-600">
@@ -241,9 +240,9 @@ function Bill() {
 
 function useForceUpdate() {
   const [, setTick] = useState(0);
-  const update = () => {
+  const update = useCallback(() => {
     setTick((tick) => tick + 1);
-  };
+  }, []);
   return update;
 }
 

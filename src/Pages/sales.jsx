@@ -13,8 +13,9 @@ function Sales() {
   const [selectedCategoryName, setSelectedCategoryName] = useState({});
   const [categoryImages, setCategoryImages] = useState({});
   const [productNames, setProductNames] = useState({});
-  const { Sale, CreateDetail, getDetailsSale, Count, total, fetchSales, Sales, addnewDetail, newDetails, setNewCost, newCost, action } = useSaleContext();
+  const { Sale, CreateDetail, getDetailsSale, Count, total, fetchSales, Sales, addnewDetail, newDetails, setNewCost, newCost, action, setnewDetails,  } = useSaleContext();
   const [newSaleID, setNewSaleID] = useState();
+  const [forceUpdate, setForceUpdate] = useState(0); // Estado local para forzar la actualización
 
   useEffect(() => {
     fetchProductCategories();
@@ -26,13 +27,21 @@ function Sales() {
     } else {
       setNewSaleID(1);
     }
-  }, []);
+  }, [forceUpdate]); // Dependencia añadida
+
+  const updateTotal = () => {
+    const newTotal = newDetails.reduce((acc, item) => {
+      const product = AllProducts.find((product) => product.ID_Product === item.Product_ID);
+      return acc + product.Price_Product * item.Lot;
+    }, 0);
+    fetchGain(newTotal);
+    forceUpdate(); // Actualiza el componente después de cambiar el total
+  };
 
   const handleCategoryChange = (event) => {
     const newCategoryID = event.target.value;
 
     if (newCategoryID === '') {
-      // Reset selected category
       setSelectedCategories([]);
       setSelectedCategory('');
       setSelectedCategoryName({});
@@ -61,7 +70,6 @@ function Sales() {
       }
     }
 
-    // Reset selectedCategory to an empty string
     setSelectedCategory('');
   };
 
@@ -86,12 +94,20 @@ function Sales() {
   };
 
   const detail = (ID_Product) => {
-    const data = {
-      Sale_ID: newSaleID,
-      Product_ID: ID_Product,
-      Lot: 1,
-    };
-    addnewDetail(data);
+    const existingDetailIndex = newDetails.findIndex((detail) => detail.Product_ID === ID_Product);
+
+    if (existingDetailIndex !== -1) {
+      const updatedDetails = [...newDetails];
+      updatedDetails[existingDetailIndex].Lot += 1;
+      setnewDetails(updatedDetails);
+    } else {
+      const data = {
+        Sale_ID: newSaleID,
+        Product_ID: ID_Product,
+        Lot: 1,
+      };
+      addnewDetail(data);
+    }
   };
 
   const handleImageClick = async (categoryID, imageIndex) => {
@@ -103,14 +119,14 @@ function Sales() {
       console.error('Error al cargar productos o detalles:', error);
     }
     setSelectedCategory('');
-    console.log(newDetails);
+    setForceUpdate((prev) => prev + 1);
   };
 
   return (
     <div className=" ">
       <h1 className="text-3xl font-bold mb-4">Ventas 1.0 </h1>
       <div className="flex flex-grid">
-        <div className="w-full md:w-[70%] lg:w-[60%] xl:w-[50%] min-h-screen md:min-h-[70%] lg:min-h-[80%] mx-auto md:mx-[25%] lg:mx-[30%] xl:mx-[35%] mr-5">
+        <div className="w-full md:w-[70%] lg:w-[60%] xl:w-[50%] min-h-screen md:min-h-[70%] lg:min-h-[80%] mx-auto md:mx-[25%] lg:mx-[30%] xl:mx-[35%] mr-5 bg-gray-200 border border-gray-400 rounded-lg h-full shadow-lg relative mt-[10vh]">
           <div className="float-left mt-[3vh]">
             <label htmlFor="categorias" className="text-lg font-medium text-gray-700">
               Seleccione categorías:
@@ -122,7 +138,6 @@ function Sales() {
               value={selectedCategory}
               onChange={handleCategoryChange}
             >
-              {/* Default option */}
               <option value="" disabled hidden>
                 Seleccione categorías
               </option>
@@ -152,13 +167,12 @@ function Sales() {
             </div>
           ))}
         </div>
-        <div className="contenedor derecho w-[50vh] bg-gray-200 border border-gray-400 rounded-lg h-full shadow-lg relative mt-[10vh]">
+        <div className="contenedor derecho w-[50vh] bg-gray-200 border border-gray-400 rounded-lg h-full shadow-lg relative mt-[10vh] mr-[10vh]">
           <div className="h-full w-full ">
             {action === 1 ? <Bill /> : action === 2 ? <Edit_Bill /> : null}
           </div>
         </div>
       </div>
-      
     </div>
   );
 }

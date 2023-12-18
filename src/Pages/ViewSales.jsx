@@ -12,7 +12,7 @@ import ReadSale from './ReadSale';
 import { useUser } from '../Context/User.context.jsx';
 
 function formatNumberWithCommas(number) {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function ViewSales() {
@@ -31,7 +31,6 @@ function ViewSales() {
   const [idSale, setID] = useState();
   const [filterByState, setFilterByState] = useState(false);
   const salesPerPage = 6;
-  const pagesVisited = pageNumber * salesPerPage;
   const { getDetailProduct2, getwholeProducts, AllProducts } = useProduct();
   const { user, getWaiters2, toggleUserStatus } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +41,11 @@ function ViewSales() {
   const openModal = () => {
     setIsModalOpen(true);
   };
+
+  function formatDate(date) {
+    const options = { month: 'short', day: 'numeric' };
+    return new Date(date).toLocaleDateString(undefined, options);
+  }
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -62,7 +66,6 @@ function ViewSales() {
 
   const closePaymentModal = () => {
     setIsPaymentModalOpen(false);
-
     fetchSales();
   };
 
@@ -73,19 +76,9 @@ function ViewSales() {
 
     // Verificar si ya se ejecutó clearDet
     clearDet();
-  }, []);
+  }, [filterByState]);
 
-  useEffect(() => {
-    fetchSales();
-  }, []);
-
-  const [productIdsList, setProductIdsList] = useState([]);
   const pageCount = Math.ceil(Sales.length / salesPerPage);
-  let isCleared = false;
-
-  const handlePageClick = ({ selected }) => {
-    setPageNumber(selected);
-  };
 
   const getUserById = (userId) => {
     const foundUser = Object.values(user).find((u) => u.ID_User === userId);
@@ -94,19 +87,30 @@ function ViewSales() {
 
   const handleCheckboxChange = () => {
     setFilterByState(!filterByState);
+    setPageNumber(0); // Reiniciar a la primera página al cambiar el filtro
+    fetchSales(); // Obtener la lista de ventas actualizada
+  };
+
+  const handlePageClick = ({ selected }) => {
+    setPageNumber(selected);
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setPageNumber(0); // Reiniciar a la primera página al realizar la búsqueda
   };
 
   const displaySales = Sales
-    .slice(0)
-    .reverse()
-    .slice(pagesVisited, pagesVisited + salesPerPage)
-    .filter((sale) => {
-      const userName = getUserById(sale.User_ID)?.Name_User || 'Venta Rapida';
-      const userMatch = userName.toLowerCase().includes(searchTerm.toLowerCase());
-      const stateMatch = !filterByState || (filterByState && sale.StatePay);
-
-      return userMatch && stateMatch;
-    });
+  .slice(0)
+  .reverse()
+  .filter((sale) => {
+    const saleDetails = `${sale.ID_Sale} ${formatDate(sale.createdAt)} ${formatNumberWithCommas(sale.Total)} ${formatNumberWithCommas(sale.SubTotal)} ${getUserById(sale.User_ID)?.Name_User || 'Venta Rapida'} ${sale.StatePay ? 'Pendiente' : 'Pagado'}`.toLowerCase();
+    return (
+      saleDetails.includes(searchTerm.toLowerCase()) &&
+      (!filterByState || (filterByState && sale.StatePay))
+    );
+  })
+  .slice(pageNumber * salesPerPage, (pageNumber + 1) * salesPerPage);
 
   const isSaleEditable = (sale) => sale.StatePay;
 
@@ -136,17 +140,22 @@ function ViewSales() {
                       </Link>
                     </div>
                     <div className="col-md-6">
-                      <div className="form-group">
-                        <input
-                          type="search"
-                          className="form-control"
-                          id="exampleInputEmail1"
-                          aria-describedby="emailHelp"
-                          placeholder="Buscador"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                      </div>
+                      <form onSubmit={handleSearch}>
+                        <div className="form-group">
+                          <input
+                            type="search"
+                            className="form-control"
+                            id="exampleInputEmail1"
+                            aria-describedby="emailHelp"
+                            placeholder="Buscador"
+                            value={searchTerm}
+                            onChange={(e) => {
+                              setSearchTerm(e.target.value);
+                              setPageNumber(0); // Reiniciar a la primera página al cambiar el término de búsqueda
+                            }}
+                          />
+                        </div>
+                      </form>
                     </div>
                     <div className="col-md-6">
                       <div className="form-check">
@@ -172,10 +181,11 @@ function ViewSales() {
                         <thead>
                           <tr>
                             <th>#</th>
-                            <th>Estado</th>
+                            <th>Fecha</th>
                             <th>Total</th>
                             <th>SubTotal</th>
                             <th>Mesero</th>
+                            <th>Estado</th>
                             <th className="flex flex-row justify-center">
                               Acciones
                             </th>
@@ -185,7 +195,7 @@ function ViewSales() {
                           {displaySales.map((sale, index) => (
                             <tr key={index}>
                               <td>{formatNumberWithCommas(sale.ID_Sale)}</td>
-                              <td>{sale.StatePay ? 'Pendiente' : 'Pagado'}</td>
+                              <td>{formatDate(sale.createdAt)}</td>
                               <td>{formatNumberWithCommas(sale.Total)}</td>
                               <td>{formatNumberWithCommas(sale.SubTotal)}</td>
                               <td>
@@ -194,6 +204,7 @@ function ViewSales() {
                                     'Venta Rapida'
                                   : 'Venta Rapida'}
                               </td>
+                              <td>{sale.StatePay ? 'Pendiente' : 'Pagado'}</td>
                               <td className="flex flex-row justify-center space-x-[2vh]">
                                 {isSaleEditable(sale) ? (
                                   <Link to="/sales">

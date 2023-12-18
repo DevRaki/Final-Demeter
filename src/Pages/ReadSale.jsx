@@ -7,7 +7,7 @@ import { useUser } from "../Context/User.context.jsx";
 import ReactPaginate from 'react-paginate';
 
 function formatNumberWithCommas(number) {
-  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 function ReadSale() {
@@ -53,7 +53,7 @@ function ReadSale() {
             <form className="mt-4">
                 <h2 className="text-xl font-bold mb-2">Orden {Sale.ID_Sale}</h2>
                 <div className="mb-4">
-                    <label htmlFor="date" className="block text-gray-600">Fecha:</label>
+                    <label htmlFor="date" className="block text-gray-600"><strong>Fecha:</strong></label>
                     <input
                         type="date"
                         id="date"
@@ -63,7 +63,7 @@ function ReadSale() {
                     />
                 </div>
                 <div className="mb-4">
-                    <p>Mesero : {Sale.User_ID ? getUserById(Sale.User_ID)?.Name_User : 'Venta Rapida'}</p>
+                    <p> <strong>Mesero : </strong>{Sale.User_ID ? getUserById(Sale.User_ID)?.Name_User : 'Venta Rapida'}</p>
                 </div>
                 <div className="w-full overflow-x-auto">
                     <table className="min-w-full bg-white border rounded-xl">
@@ -90,7 +90,9 @@ function ReadSale() {
                     </table>
                 </div>
                 <div className="mb-4">
-                    <p>SubTotal: {formatNumberWithCommas(total)} Total: {formatNumberWithCommas(total)}</p>
+                <p>
+  <strong>SubTotal:</strong> {formatNumberWithCommas(total)} <strong>Total:</strong> {formatNumberWithCommas(total)}
+</p>
                 </div>
             </form>
 
