@@ -8,7 +8,15 @@ import ReactPaginate from 'react-paginate';
 import { useUser } from '../Context/User.context.jsx';
 
 function Bill() {
-    const { Create, fetchGain, total, newDetails, Sales, setnewDetails, createManyDetails } = useSaleContext();
+    const {
+        Create,
+        fetchGain,
+        total,
+        newDetails,
+        Sales,
+        setnewDetails,
+        createManyDetails,
+    } = useSaleContext();
     const { getwholeProducts, AllProducts } = useProduct();
     const { user, getWaiters } = useUser();
     const [newSaleID, setNewSaleID] = useState();
@@ -18,6 +26,7 @@ function Bill() {
     const [currentPage, setCurrentPage] = useState(0);
     const ITEMS_PER_PAGE = 4;
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         getwholeProducts();
@@ -52,13 +61,24 @@ function Bill() {
         fetchGain(subtotal);
     }, [newDetails, AllProducts, Sales]);
 
-    const CreateSale = () => {
+    const CreateSale = async () => {
         if (newDetails.length > 0) {
-            Create(selectedWaiter).then(createManyDetails(newDetails));
-            Setsalemss("Generado correctamente");
-            createManyDetails([]); // Limpiar la lista de detalles después de generar la orden
-            // Redirigir a /sale usando navigate sin recarga de página
-            navigate("/sale");
+            try {
+                setLoading(true); // Activar indicador de carga
+
+                await Create(selectedWaiter);
+                await createManyDetails(newDetails);
+
+                Setsalemss("Generado correctamente");
+                createManyDetails([]); // Limpiar la lista de detalles después de generar la orden
+                // Redirigir a /sale usando navigate sin recarga de página
+                navigate("/sale");
+            } catch (error) {
+                console.error("Error al generar la orden:", error);
+                Setsalemss("Error al generar la orden");
+            } finally {
+                setLoading(false); // Desactivar indicador de carga, independientemente de si fue exitoso o no
+            }
         } else {
             Setsalemss("No puedes Generar una venta vacía");
         }
@@ -198,9 +218,9 @@ function Bill() {
                         newDetails.length === 0 ? 'bg-gray-500 text-white cursor-not-allowed' : 'bg-orange-500 text-white'
                     }`}
                     onClick={CreateSale}
-                    disabled={newDetails.length === 0} // Desactiva el botón si newDetails está vacío
+                    disabled={newDetails.length === 0 || loading} // Desactiva el botón si newDetails está vacío o si está cargando
                 >
-                    Generar orden
+                    {loading ? 'Generando...' : 'Generar orden'}
                 </button>
 
                 <button

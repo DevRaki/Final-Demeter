@@ -145,8 +145,8 @@ function Sales() {
                         </div>
                     ))}
                 </div>
-                <div className="contenedor derecho w-[50vh] bg-gray-200 border border-gray-400 rounded-lg h-[60vh] shadow-lg relative mt-[10vh]">
-                    <div className="h-full w-full overflow-hidden">
+                <div className="contenedor derecho w-[50vh] bg-gray-200 border border-gray-400 rounded-lg h-full shadow-lg relative mt-[10vh]">
+                    <div className="h-full w-full ">
                     
                     {action === 1 ? <Bill /> : action === 2 ? <Edit_Bill /> : null}
                     </div>
