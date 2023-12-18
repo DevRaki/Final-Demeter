@@ -58,7 +58,7 @@ function ViewSales() {
 
   const closePaymentModal = () => {
     setIsPaymentModalOpen(false);
-    // Actualizar la lista de ventas después de cerrar el modal de pago
+
     fetchSales();
   };
 
@@ -67,15 +67,6 @@ function ViewSales() {
     getWaiters2();
     getwholeProducts();
 
-    newDetails.forEach((detail, index) => {
-      getDetailProduct2(detail.Product_ID);
-
-      // Verificar si ya se ejecutó clearDet
-      if (!isCleared) {
-        clearDet();
-        isCleared = true;
-      }
-    });
   }, []);
 
   const [productIdsList, setProductIdsList] = useState([]);
