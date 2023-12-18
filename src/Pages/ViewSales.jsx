@@ -196,8 +196,8 @@ function ViewSales() {
                             <tr key={index}>
                               <td>{formatNumberWithCommas(sale.ID_Sale)}</td>
                               <td>{formatDate(sale.createdAt)}</td>
-                              <td>{formatNumberWithCommas(sale.Total)}</td>
-                              <td>{formatNumberWithCommas(sale.SubTotal)}</td>
+                              <td>${formatNumberWithCommas(sale.Total)}</td>
+                              <td>${formatNumberWithCommas(sale.SubTotal)}</td>
                               <td>
                                 {sale.User_ID
                                   ? getUserById(sale.User_ID)?.Name_User ||

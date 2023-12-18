@@ -123,7 +123,7 @@ function Instruction() {
                                             <h4>Ventas</h4>
                                             <button
                                                 onClick={() => {
-                                                    navigate('/');
+                                                    window.location.href = 'https://app.tango.us/app/workflow/Demeter-SOFT--A-Step-by-Step-for-Sales-Management-c33a84b25ed14d45899ec7c34150351a';
                                                 }}
                                                 className="pc-link btn btn-outline-dark"
                                             >

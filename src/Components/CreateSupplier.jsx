@@ -19,6 +19,7 @@ const style = {
   pb: 3
 };
 
+
 export default function CreateSupplier({
   onDefaultSubmit = null,
   buttonProps = {
@@ -55,12 +56,12 @@ export default function CreateSupplier({
 
   /**
    * 
-   * @param {"Email" | "Document" | "Name_Supplier" | "Name_Business" | "Phone"} type 
+   * @param {"Email" | "Document" | "Name_Supplier" | "Name_Business" | "Phone" | "City"} type 
    * @param {Object} target 
    */
   const validate = (type, target) => {
 
-    let value = "";
+    let value = target;
     switch (type) {
       case "Email": {
         value = target.replace(/\s+/g, "")
@@ -70,15 +71,17 @@ export default function CreateSupplier({
       case "Document": {
 
         value = target.replace(/[^0-9]/g, '').replace(/\s/g, "")
-        if (getValues().Type_Document === "CE") {
+        if (getValues().Type_Document === "PB") {
           value = target.replace(/\s/g, "")
         }
         break
       }
 
       case "Name_Business":
+      case "City":
       case "Name_Supplier": {
-        value = target.replace(/\s+/g, " ").toUpperCase()
+        const sanitizedValue = target.replace(/^\s+/g, "").replace(/\s{2,}/g, " ").replace(/\d+/g, "")
+        value = sanitizedValue.slice(0, 21).toUpperCase();
         break
 
       }
@@ -90,18 +93,6 @@ export default function CreateSupplier({
         }
         break
       }
- case "Name_Supplier": {
-        value = target.replace(/\s+/g, " ").toUpperCase()
-        break
-
-      }
-
-      case "City": {
-        value = target.replace(/\s+/g, " ").toUpperCase()
-        break
-
-      }
-
 
       default: break
     }
@@ -126,9 +117,6 @@ export default function CreateSupplier({
     const isEmailDuplicate = supplier.some(
       (supplier) => supplier.Email === values.Email
     );
-    const isBusinessDuplicate = supplier.some(
-      (supplier) => supplier.Name_Business === values.Name_Business
-    );
     const isPhoneDuplicate = supplier.some(
       (supplier) => supplier.Phone === values.Phone
     );
@@ -145,14 +133,6 @@ export default function CreateSupplier({
       setError("Email", {
         type: "manual",
         message: "El correo del proveedor ya existe."
-      });
-      return;
-    }
-
-    if (isBusinessDuplicate) {
-      setError("Name_Business", {
-        type: "manual",
-        message: "La nombre de la empresa ya existe."
       });
       return;
     }
@@ -256,7 +236,7 @@ export default function CreateSupplier({
                             {...register("Type_Document", {
                               required: "El tipo de documento es requerido"
                             })}
-                            className=" form-control"
+                            className="form-control"
                             onChange={() => {
                               setValue("Document", "")
                             }}
@@ -289,12 +269,7 @@ export default function CreateSupplier({
                           {...register("Document", {
                             required: "El documento es requerido",
                             validate: (value) => {
-                              const parsedValue = parseInt(value);
-                              if (
-                                isNaN(parsedValue) ||
-                                parsedValue < 10000000 ||
-                                parsedValue > 9999999999
-                              ) {
+                              if (value.length < 8 || value.length > 10) {
                                 return "El número debe tener de 8 a 10 caracteres.";
                               }
                             }
@@ -323,7 +298,7 @@ export default function CreateSupplier({
                           {...register("Name_Supplier", {
                             required: "El nombre es obligatorio",
                             pattern: {
-                              value: /^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
+                              // value: /^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
                               message:
                                 "La primera letra debe ser mayúscula"
                             }
@@ -349,7 +324,7 @@ export default function CreateSupplier({
                           {...register("Name_Business", {
                             required: false,
                             pattern: {
-                              value: /^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
+                              // value: /^[A-ZÁÉÍÓÚÑ][a-zA-Z\sáéíóúñ]*$/,
                               message:
                                 "La primera letra debe ser mayúscula y solo letras."
                             }
@@ -415,7 +390,7 @@ export default function CreateSupplier({
 
                     <div className="city">
                       <div className="form-group col-md-6">
-                        <label htmlFor="City" className="form-label text-city">
+                        <label htmlFor="City" className="form-label">
                           Ciudad
                         </label>
                         <input
@@ -428,7 +403,7 @@ export default function CreateSupplier({
                             }
                           })}
                           type="text"
-                          className="form-control tamañoS"
+                          className="form-control"
                           required
                           onChange={(e) => handleInputChange("City", e.target.value)}
 
@@ -440,15 +415,15 @@ export default function CreateSupplier({
                       </div>
                     </div>
                     <div className="buttonconfirm">
-                      <div className="mb-4 ">
+                      <div className="mb-3">
                         <button
-                          className="btn btn-primary mr-5 mt-5"
+                          className="btn btn-primary mr-5"
                           type="submit"
                         >
                           Confirmar
                         </button>
                         <button
-                          className="btn btn-primary mt-5"
+                          className="btn btn-danger"
                           onClick={handleClose}
                           type="button"
                         >

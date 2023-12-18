@@ -19,7 +19,6 @@ const Dashboard = () => {
     fetchBP();
     fetchShops();
     fetchsupli();
-    console.log(shopsChart)
   }, []);
 
   // Utiliza los datos de salesChart para el gráfico
